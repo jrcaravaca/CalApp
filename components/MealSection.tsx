@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import {
   Coffee,
   UtensilsCrossed,
@@ -51,6 +51,34 @@ export const MealSection: React.FC<MealSectionProps> = ({
   const [editingLogId, setEditingLogId] = useState<string | null>(null);
   const [tempGrams, setTempGrams] = useState<number>(100);
   const [showAddMenu, setShowAddMenu] = useState<boolean>(false);
+  const addBtnRef = useRef<HTMLButtonElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; left: number; width: number } | null>(null);
+
+  // Close on click-outside
+  useEffect(() => {
+    if (!showAddMenu) return;
+    const handler = (e: MouseEvent) => {
+      if (
+        menuRef.current && !menuRef.current.contains(e.target as Node) &&
+        addBtnRef.current && !addBtnRef.current.contains(e.target as Node)
+      ) setShowAddMenu(false);
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, [showAddMenu]);
+
+  const handleToggleMenu = () => {
+    if (!showAddMenu && addBtnRef.current) {
+      const rect = addBtnRef.current.getBoundingClientRect();
+      setMenuPos({
+        top: rect.bottom + window.scrollY + 6,
+        left: rect.left + window.scrollX,
+        width: rect.width,
+      });
+    }
+    setShowAddMenu((v) => !v);
+  };
 
   const mealLogs = logs.filter((l) => l.meal_type === mealType);
   const config = MEAL_CONFIG[mealType];
@@ -214,86 +242,53 @@ export const MealSection: React.FC<MealSectionProps> = ({
         )}
       </div>
 
-      {/* Add Food Trigger & Popup Selector */}
-      <div className="relative">
+      {/* Add Food Trigger */}
+      <div>
         <button
-          onClick={() => setShowAddMenu(!showAddMenu)}
+          ref={addBtnRef}
+          onClick={handleToggleMenu}
           className="w-full py-2 px-3 rounded-xl border border-dashed border-white/10 hover:border-emerald-500/40 bg-white/2 hover:bg-emerald-500/5 text-xs font-semibold text-slate-300 hover:text-emerald-400 flex items-center justify-center gap-1.5 transition"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Añadir a {config.label}</span>
         </button>
-
-        {showAddMenu && (
-          <div className="absolute left-0 right-0 top-full mt-2 z-20 glass-panel border border-white/10 rounded-2xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
-            <div className="grid grid-cols-2 gap-1.5">
-              <button
-                onClick={() => {
-                  setShowAddMenu(false);
-                  onOpenSearch(mealType);
-                }}
-                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
-              >
-                <div className="w-7 h-7 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-                  <Search className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">Buscar</p>
-                  <p className="text-[10px] text-slate-400">Base de datos</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAddMenu(false);
-                  onOpenAI(mealType);
-                }}
-                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
-              >
-                <div className="w-7 h-7 rounded-lg bg-teal-500/20 text-teal-300 flex items-center justify-center">
-                  <Camera className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">IA Gemini</p>
-                  <p className="text-[10px] text-slate-400">Foto o texto</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAddMenu(false);
-                  onOpenScanner(mealType);
-                }}
-                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
-              >
-                <div className="w-7 h-7 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center">
-                  <ScanBarcode className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">Código Barras</p>
-                  <p className="text-[10px] text-slate-400">Cámara en vivo</p>
-                </div>
-              </button>
-
-              <button
-                onClick={() => {
-                  setShowAddMenu(false);
-                  onOpenScaler(mealType);
-                }}
-                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
-              >
-                <div className="w-7 h-7 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-                  <Scale className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <p className="text-xs font-bold text-white">Escalador</p>
-                  <p className="text-[10px] text-slate-400">Ajustar macros</p>
-                </div>
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Fixed portal dropdown — never clipped by parent overflow */}
+      {showAddMenu && menuPos && (
+        <div
+          ref={menuRef}
+          style={{
+            position: 'fixed',
+            top: menuPos.top,
+            left: menuPos.left,
+            width: menuPos.width,
+            zIndex: 9999,
+          }}
+          className="bg-[#0d1117] border border-white/10 rounded-2xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+        >
+          <div className="grid grid-cols-2 gap-1.5">
+            {[
+              { label: 'Buscar', sub: 'Base de datos', icon: <Search className="w-3.5 h-3.5" />, color: 'bg-emerald-500/20 text-emerald-400', action: () => onOpenSearch(mealType) },
+              { label: 'IA Gemini', sub: 'Foto o texto', icon: <Camera className="w-3.5 h-3.5" />, color: 'bg-teal-500/20 text-teal-300', action: () => onOpenAI(mealType) },
+              { label: 'Cód. Barras', sub: 'Cámara en vivo', icon: <ScanBarcode className="w-3.5 h-3.5" />, color: 'bg-sky-500/20 text-sky-400', action: () => onOpenScanner(mealType) },
+              { label: 'Escalador', sub: 'Ajustar macros', icon: <Scale className="w-3.5 h-3.5" />, color: 'bg-indigo-500/20 text-indigo-400', action: () => onOpenScaler(mealType) },
+            ].map((item) => (
+              <button
+                key={item.label}
+                onClick={() => { setShowAddMenu(false); item.action(); }}
+                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
+              >
+                <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color}`}>{item.icon}</div>
+                <div>
+                  <p className="text-xs font-bold text-white">{item.label}</p>
+                  <p className="text-[10px] text-slate-400">{item.sub}</p>
+                </div>
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
