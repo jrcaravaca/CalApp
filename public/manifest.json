@@ -1,0 +1,24 @@
+{
+  "name": "FitFree - Smart Food & Macro Tracker",
+  "short_name": "FitFree",
+  "description": "Free, AI-powered food tracking, barcode scanning, and macro portion scaler",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0B0F19",
+  "theme_color": "#10B981",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
