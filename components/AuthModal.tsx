@@ -9,10 +9,9 @@ import {
   LogOut,
   Check,
   AlertCircle,
-  Database,
   Copy,
-  Sparkles,
   Zap,
+  Ghost,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
@@ -60,7 +59,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
     setMessage(null);
 
     try {
-      // Use internal server-side proxy route to avoid browser adblockers and CORS issues
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -70,7 +68,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Error al conectar con la autenticación.');
+        throw new Error(data.error || 'Error de autenticación.');
       }
 
       const activeUser = data.user || { email, id: `user_${Date.now()}` };
@@ -78,21 +76,56 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       setUser(activeUser);
 
       setMessage({
-        text: action === 'signup'
-          ? (data.session ? '¡Cuenta creada con éxito!' : '¡Cuenta registrada! Sesión activa.')
-          : '¡Sesión iniciada con éxito!',
+        text: action === 'signup' ? '¡Cuenta creada con éxito!' : '¡Sesión iniciada con éxito!',
         type: 'success',
       });
 
       onAuthChange();
       setTimeout(onClose, 1200);
     } catch (err: any) {
-      console.warn('Auth attempt error:', err);
-      // Helpful fallback message
-      setMessage({
-        text: `${err.message} Puedes usar el 'Modo Local' abajo para continuar sin restricciones.`,
-        type: 'warning',
-      });
+      const msg: string = err.message || '';
+      // Supabase free plan: 2 emails/hour rate limit
+      const isRateLimit = msg.toLowerCase().includes('rate') ||
+        msg.toLowerCase().includes('over_email_send_rate_limit') ||
+        msg.includes('429');
+
+      if (isRateLimit) {
+        setMessage({
+          text: '⚠️ Límite de correos alcanzado (plan gratuito de Supabase). Opciones: (1) Usa el botón "Perfil Rápido" sin email, (2) Usa "Entrar como Invitado", o (3) En tu dashboard de Supabase desactiva "Confirm email" en Authentication → Providers → Email.',
+          type: 'warning',
+        });
+      } else {
+        setMessage({
+          text: `${msg} Prueba el acceso rápido sin email.`,
+          type: 'warning',
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleAnonymousSignIn = async () => {
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      if (!isSupabaseConfigured) throw new Error('Supabase no configurado');
+      const { data, error } = await supabase.auth.signInAnonymously();
+      if (error) throw error;
+      const anonUser = data.user || { id: `anon_${Date.now()}`, email: 'invitado@fitfree.app', is_anonymous: true };
+      localStorage.setItem('fitfree_local_user', JSON.stringify({ ...anonUser, is_local: false, is_anonymous: true }));
+      setUser(anonUser);
+      setMessage({ text: '¡Sesión anónima activa! Tus datos se guardan localmente.', type: 'success' });
+      onAuthChange();
+      setTimeout(onClose, 1200);
+    } catch (err: any) {
+      // Fallback to local if anon not enabled in Supabase
+      const anonUser = { id: `anon_${Date.now()}`, email: 'invitado@fitfree.app', is_local: true, is_anonymous: true };
+      localStorage.setItem('fitfree_local_user', JSON.stringify(anonUser));
+      setUser(anonUser);
+      setMessage({ text: 'Sesión de invitado activada (modo local).', type: 'success' });
+      onAuthChange();
+      setTimeout(onClose, 1200);
     } finally {
       setIsLoading(false);
     }
@@ -318,8 +351,19 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                     {isLoading ? (
                       <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
                     ) : (
-                      <span>{mode === 'signup' ? 'Crear Cuenta en Supabase' : 'Iniciar Sesión'}</span>
+                      <span>{mode === 'signup' ? 'Crear Cuenta' : 'Iniciar Sesión'}</span>
                     )}
+                  </button>
+
+                  {/* Anonymous sign-in */}
+                  <button
+                    type="button"
+                    onClick={handleAnonymousSignIn}
+                    disabled={isLoading}
+                    className="w-full py-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 text-slate-300 text-xs font-bold flex items-center justify-center gap-1.5 transition"
+                  >
+                    <Ghost className="w-3.5 h-3.5" />
+                    <span>Entrar como Invitado (sin email)</span>
                   </button>
 
                   <div className="text-center pt-1">
@@ -328,7 +372,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                       onClick={() => setMode('local')}
                       className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline"
                     >
-                      ¿Prefieres empezar sin registrar email? Activa Perfil Rápido
+                      ¿Sin internet? Usa Perfil Rápido local
                     </button>
                   </div>
                 </form>
