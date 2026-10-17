@@ -11,7 +11,8 @@ import {
   AlertCircle,
   Database,
   Copy,
-  ExternalLink,
+  Sparkles,
+  Zap,
 } from 'lucide-react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 
@@ -26,87 +27,110 @@ export const AuthModal: React.FC<AuthModalProps> = ({
   onClose,
   onAuthChange,
 }) => {
-  const [mode, setMode] = useState<'login' | 'signup'>('login');
+  const [mode, setMode] = useState<'signup' | 'login' | 'local'>('signup');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
+  const [localName, setLocalName] = useState<string>('');
   const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
+  const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' | 'warning' } | null>(null);
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
   useEffect(() => {
-    if (isOpen && isSupabaseConfigured) {
-      supabase.auth.getUser().then(({ data }) => {
-        setUser(data?.user || null);
-      });
+    if (isOpen) {
+      // Check existing local or Supabase user
+      const localUser = localStorage.getItem('fitfree_local_user');
+      if (localUser) {
+        try {
+          setUser(JSON.parse(localUser));
+        } catch (_) {}
+      } else if (isSupabaseConfigured) {
+        supabase.auth.getUser().then(({ data }) => {
+          if (data?.user) setUser(data.user);
+        });
+      }
     }
   }, [isOpen]);
 
   if (!isOpen) return null;
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSupabaseAuth = async (action: 'signup' | 'login') => {
     if (!email || !password) return;
     setIsLoading(true);
     setMessage(null);
 
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
+      // Use internal server-side proxy route to avoid browser adblockers and CORS issues
+      const res = await fetch('/api/auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, email, password }),
       });
 
-      if (error) throw error;
+      const data = await res.json();
 
-      setUser(data.user);
-      setMessage({ text: '¡Sesión iniciada con éxito!', type: 'success' });
+      if (!res.ok) {
+        throw new Error(data.error || 'Error al conectar con la autenticación.');
+      }
+
+      const activeUser = data.user || { email, id: `user_${Date.now()}` };
+      localStorage.setItem('fitfree_local_user', JSON.stringify(activeUser));
+      setUser(activeUser);
+
+      setMessage({
+        text: action === 'signup'
+          ? (data.session ? '¡Cuenta creada con éxito!' : '¡Cuenta registrada! Sesión activa.')
+          : '¡Sesión iniciada con éxito!',
+        type: 'success',
+      });
+
       onAuthChange();
-      setTimeout(onClose, 1000);
+      setTimeout(onClose, 1200);
     } catch (err: any) {
-      setMessage({ text: err.message || 'Error al iniciar sesión.', type: 'error' });
+      console.warn('Auth attempt error:', err);
+      // Helpful fallback message
+      setMessage({
+        text: `${err.message} Puedes usar el 'Modo Local' abajo para continuar sin restricciones.`,
+        type: 'warning',
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSignUp = async (e: React.FormEvent) => {
+  const handleInstantLocalAccount = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password) return;
-    setIsLoading(true);
-    setMessage(null);
+    const name = localName.trim() || email.trim() || 'Atleta FitFree';
+    const fakeEmail = name.includes('@') ? name : `${name.toLowerCase().replace(/\s+/g, '')}@fitfree.app`;
 
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-      });
+    const localAccount = {
+      id: `local_${Date.now()}`,
+      email: fakeEmail,
+      user_metadata: { name },
+      is_local: true,
+    };
 
-      if (error) throw error;
-
-      if (data.session) {
-        setUser(data.user);
-        setMessage({ text: '¡Cuenta creada y sesión iniciada!', type: 'success' });
-        onAuthChange();
-        setTimeout(onClose, 1000);
-      } else {
-        setMessage({
-          text: 'Cuenta registrada. Por favor revisa tu correo de confirmación.',
-          type: 'success',
-        });
-      }
-    } catch (err: any) {
-      setMessage({ text: err.message || 'Error al registrarse.', type: 'error' });
-    } finally {
-      setIsLoading(false);
-    }
+    localStorage.setItem('fitfree_local_user', JSON.stringify(localAccount));
+    setUser(localAccount);
+    setMessage({
+      text: `¡Bienvenido ${name}! Tu perfil local ha sido activado con guardado automático.`,
+      type: 'success',
+    });
+    onAuthChange();
+    setTimeout(onClose, 1200);
   };
 
   const handleSignOut = async () => {
     setIsLoading(true);
-    await supabase.auth.signOut();
+    localStorage.removeItem('fitfree_local_user');
+    if (isSupabaseConfigured) {
+      try {
+        await supabase.auth.signOut();
+      } catch (_) {}
+    }
     setUser(null);
     setIsLoading(false);
-    setMessage({ text: 'Sesión cerrada. Modo invitado activo.', type: 'success' });
+    setMessage({ text: 'Sesión cerrada.', type: 'success' });
     onAuthChange();
   };
 
@@ -120,7 +144,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-md glass-panel bg-[#0B0F19] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col">
+      <div className="relative w-full max-w-md glass-panel bg-[#0B0F19] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/5">
           <div className="flex items-center space-x-2">
@@ -128,8 +152,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <User className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white">Mi Cuenta & Supabase</h2>
-              <p className="text-[11px] text-slate-400">Sincronización en la nube & RLS</p>
+              <h2 className="text-base font-bold text-white">Mi Cuenta & Acceso</h2>
+              <p className="text-[11px] text-slate-400">Guarda tus macros y diario de comidas</p>
             </div>
           </div>
           <button
@@ -141,29 +165,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-5 space-y-4">
-          {/* Supabase Status Pill */}
-          <div className="p-3 rounded-2xl bg-slate-900 border border-white/5 flex items-center justify-between">
-            <div className="flex items-center space-x-2.5">
-              <div
-                className={`w-2.5 h-2.5 rounded-full ${
-                  isSupabaseConfigured ? 'bg-emerald-400' : 'bg-amber-400'
-                }`}
-              />
-              <div>
-                <p className="text-xs font-bold text-white">
-                  {isSupabaseConfigured ? 'Supabase Conectado' : 'Modo Local / Demo'}
-                </p>
-                <p className="text-[10px] text-slate-400">
-                  {isSupabaseConfigured
-                    ? 'RLS activo en profiles, food_items y daily_logs'
-                    : 'Almacenamiento offline en navegador'}
-                </p>
-              </div>
-            </div>
-            <Database className="w-4 h-4 text-slate-500" />
-          </div>
-
+        <div className="p-5 space-y-4 overflow-y-auto">
           {user ? (
             /* Logged in state */
             <div className="space-y-4 text-center py-2">
@@ -171,9 +173,11 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                 <Check className="w-7 h-7" />
               </div>
               <div>
-                <p className="text-xs text-slate-400">Sesión iniciada como:</p>
+                <p className="text-xs text-slate-400">Sesión activa como:</p>
                 <p className="text-sm font-extrabold text-white mt-0.5">{user.email}</p>
-                <p className="text-[10px] text-slate-500 font-mono mt-1">ID: {user.id}</p>
+                <p className="text-[10px] text-slate-500 font-mono mt-1">
+                  {user.is_local ? 'Perfil Local Guardado' : 'Conectado con Supabase'}
+                </p>
               </div>
 
               <button
@@ -186,85 +190,174 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               </button>
             </div>
           ) : (
-            /* Auth Form */
-            <form onSubmit={mode === 'login' ? handleLogin : handleSignUp} className="space-y-3.5">
+            /* Form states */
+            <div className="space-y-3.5">
+              {/* Tab Selector */}
               <div className="flex p-1 bg-slate-900 rounded-xl border border-white/5">
                 <button
                   type="button"
-                  onClick={() => setMode('login')}
-                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
-                    mode === 'login' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'
-                  }`}
-                >
-                  Iniciar Sesión
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setMode('signup')}
-                  className={`flex-1 py-1.5 text-xs font-semibold rounded-lg transition ${
-                    mode === 'signup' ? 'bg-emerald-500 text-slate-950 font-bold' : 'text-slate-400'
+                  onClick={() => {
+                    setMode('signup');
+                    setMessage(null);
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                    mode === 'signup' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
                   }`}
                 >
                   Crear Cuenta
                 </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('login');
+                    setMessage(null);
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                    mode === 'login' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                  }`}
+                >
+                  Entrar
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMode('local');
+                    setMessage(null);
+                  }}
+                  className={`flex-1 py-1.5 text-xs font-bold rounded-lg transition ${
+                    mode === 'local' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400'
+                  }`}
+                >
+                  Perfil Rápido
+                </button>
               </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">
-                  Correo Electrónico
-                </label>
-                <div className="relative">
-                  <input
-                    type="email"
-                    required
-                    placeholder="tu@email.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                  />
-                  <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-                </div>
-              </div>
+              {mode === 'local' ? (
+                /* Instant local profile without email wait */
+                <form onSubmit={handleInstantLocalAccount} className="space-y-3">
+                  <div className="p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-slate-300">
+                    <p className="font-bold text-emerald-400 flex items-center gap-1">
+                      <Zap className="w-3.5 h-3.5" />
+                      Acceso Inmediato Sin Esperas
+                    </p>
+                    <p className="text-[11px] mt-1 text-slate-300">
+                      Crea tu perfil local al instante para empezar a registrar tu comida y pauta de macros sin esperas de confirmación de correo.
+                    </p>
+                  </div>
 
-              <div>
-                <label className="text-[11px] font-bold text-slate-300 block mb-1">
-                  Contraseña
-                </label>
-                <div className="relative">
-                  <input
-                    type="password"
-                    required
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
-                  />
-                  <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
-                </div>
-              </div>
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      Tu Nombre o Alias
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="Ej. José Ramón"
+                      value={localName}
+                      onChange={(e) => setLocalName(e.target.value)}
+                      className="w-full px-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-emerald-500"
+                    />
+                  </div>
 
-              <button
-                type="submit"
-                disabled={isLoading}
-                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
-              >
-                <span>{mode === 'login' ? 'Entrar a FitFree' : 'Crear Mi Cuenta Gratis'}</span>
-              </button>
-            </form>
+                  <button
+                    type="submit"
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+                  >
+                    <span>Empezar con este Perfil</span>
+                  </button>
+                </form>
+              ) : (
+                /* Supabase Cloud Auth Form */
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSupabaseAuth(mode);
+                  }}
+                  className="space-y-3"
+                >
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      Correo Electrónico
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="email"
+                        required
+                        placeholder="tu@email.com"
+                        value={email}
+                        onChange={(e) => setEmail(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                      <Mail className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="text-[11px] font-bold text-slate-300 block mb-1">
+                      Contraseña
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="password"
+                        required
+                        minLength={6}
+                        placeholder="••••••••"
+                        value={password}
+                        onChange={(e) => setPassword(e.target.value)}
+                        className="w-full pl-9 pr-3 py-2 bg-slate-900 border border-white/10 rounded-xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500"
+                      />
+                      <Lock className="w-4 h-4 text-slate-500 absolute left-3 top-2.5" />
+                    </div>
+                  </div>
+
+                  <button
+                    type="submit"
+                    disabled={isLoading}
+                    className="w-full py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+                  >
+                    {isLoading ? (
+                      <div className="w-4 h-4 rounded-full border-2 border-slate-950 border-t-transparent animate-spin" />
+                    ) : (
+                      <span>{mode === 'signup' ? 'Crear Cuenta en Supabase' : 'Iniciar Sesión'}</span>
+                    )}
+                  </button>
+
+                  <div className="text-center pt-1">
+                    <button
+                      type="button"
+                      onClick={() => setMode('local')}
+                      className="text-xs text-emerald-400 hover:text-emerald-300 font-semibold underline"
+                    >
+                      ¿Prefieres empezar sin registrar email? Activa Perfil Rápido
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
-          {/* Guest Mode fallback note */}
-          <div className="p-3 rounded-2xl bg-white/2 border border-white/5 space-y-1.5">
-            <p className="text-[11px] font-bold text-slate-300">¿Quieres probar sin registrarte?</p>
-            <p className="text-[10px] text-slate-400">
-              FitFree funciona en Modo Invitado local. Todos tus alimentos, escaneos y macros se
-              guardan instantáneamente en tu navegador.
-            </p>
-          </div>
+          {message && (
+            <div
+              className={`p-3 rounded-xl text-xs flex items-start gap-2 ${
+                message.type === 'success'
+                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
+                  : message.type === 'warning'
+                  ? 'bg-amber-500/10 border border-amber-500/20 text-amber-300'
+                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
+              }`}
+            >
+              {message.type === 'success' ? (
+                <Check className="w-4 h-4 shrink-0 mt-0.5" />
+              ) : (
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+              )}
+              <span className="leading-relaxed">{message.text}</span>
+            </div>
+          )}
 
-          {/* Database Schema notice */}
+          {/* Database Schema copy notice */}
           <div className="pt-2 border-t border-white/5 flex items-center justify-between text-[11px]">
-            <span className="text-slate-500 font-mono">schema.sql listo</span>
+            <span className="text-slate-500 font-mono">schema.sql listo para Supabase</span>
             <button
               onClick={handleCopySqlInfo}
               className="text-emerald-400 hover:text-emerald-300 font-semibold flex items-center gap-1"
@@ -273,23 +366,6 @@ export const AuthModal: React.FC<AuthModalProps> = ({
               <span>{copiedSql ? 'Copiado' : 'Instrucciones SQL'}</span>
             </button>
           </div>
-
-          {message && (
-            <div
-              className={`p-3 rounded-xl text-xs flex items-center gap-2 ${
-                message.type === 'success'
-                  ? 'bg-emerald-500/10 border border-emerald-500/20 text-emerald-300'
-                  : 'bg-rose-500/10 border border-rose-500/20 text-rose-300'
-              }`}
-            >
-              {message.type === 'success' ? (
-                <Check className="w-4 h-4 shrink-0" />
-              ) : (
-                <AlertCircle className="w-4 h-4 shrink-0" />
-              )}
-              <span>{message.text}</span>
-            </div>
-          )}
         </div>
       </div>
     </div>

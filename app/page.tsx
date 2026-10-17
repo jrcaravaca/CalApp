@@ -58,6 +58,7 @@ export default function HomePage() {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [userEmail, setUserEmail] = useState<string | undefined>();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+  const [tdeeInitialTab, setTdeeInitialTab] = useState<'trainer' | 'calculator'>('trainer');
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -66,6 +67,18 @@ export default function HomePage() {
 
   // Check auth
   const refreshAuth = useCallback(async () => {
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem('fitfree_local_user');
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          setIsAuthenticated(true);
+          setUserEmail(parsed.user_metadata?.name || parsed.email || 'Mi Perfil');
+          return;
+        } catch (_) {}
+      }
+    }
+
     if (isSupabaseConfigured) {
       try {
         const { data } = await supabase.auth.getUser();
@@ -116,7 +129,8 @@ export default function HomePage() {
     setIsScalerOpen(true);
   };
 
-  const handleOpenTDEE = () => {
+  const handleOpenTDEE = (initialTab: 'trainer' | 'calculator' = 'trainer') => {
+    setTdeeInitialTab(initialTab);
     setIsTDEEOpen(true);
   };
 
@@ -313,6 +327,7 @@ export default function HomePage() {
         }}
         currentProfile={profile}
         onSaveProfile={handleSaveProfile}
+        initialTab={tdeeInitialTab}
       />
 
       <FoodSearchModal
