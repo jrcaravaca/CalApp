@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { isSafePublicSupabaseKey } from '@/lib/supabase';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -7,8 +8,10 @@ export const dynamic = 'force-dynamic';
 function getSupabaseClient() {
   const rawUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
   const cleanUrl = rawUrl.replace(/\/rest\/v1\/?$/, '').replace(/\/+$/, '');
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-  return createClient(cleanUrl, anonKey);
+  const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+  if (!cleanUrl || !isSafePublicSupabaseKey(publicKey)) return null;
+  return createClient(cleanUrl, publicKey);
 }
 
 export async function POST(req: NextRequest) {
@@ -17,6 +20,12 @@ export async function POST(req: NextRequest) {
     const { action, email, password } = body;
 
     const supabase = getSupabaseClient();
+    if (!supabase) {
+      return NextResponse.json(
+        { error: 'Supabase requiere una clave publishable o anon pública. No configures una clave secret/service_role.' },
+        { status: 503 }
+      );
+    }
 
     if (action === 'signup') {
       if (!email || !password) {

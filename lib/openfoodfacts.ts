@@ -1,10 +1,12 @@
 import { FoodItem } from './types';
+import { translateCommonFoodName } from './foodTranslations';
 
 export interface OFFProductResponse {
   status: number;
   code: string;
   product?: {
     product_name?: string;
+    product_name_es?: string;
     product_name_en?: string;
     brands?: string;
     image_front_small_url?: string;
@@ -26,7 +28,7 @@ export async function fetchProductByBarcode(barcode: string): Promise<FoodItem |
   if (!cleanBarcode) return null;
 
   try {
-    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${cleanBarcode}.json`, {
+    const res = await fetch(`https://world.openfoodfacts.org/api/v2/product/${cleanBarcode}.json?lc=es`, {
       headers: {
         'User-Agent': 'FitFreeApp/1.0 (fitfree.app - OpenFoodFacts integration)',
       },
@@ -55,7 +57,7 @@ export async function fetchProductByBarcode(barcode: string): Promise<FoodItem |
     const carbs = nutriments.carbohydrates_100g ?? 0;
     const fat = nutriments.fat_100g ?? 0;
 
-    const name = p.product_name || p.product_name_en || 'Unknown Product';
+    const name = translateCommonFoodName(p.product_name_es || p.product_name || p.product_name_en || 'Producto sin nombre');
     const brand = p.brands || null;
     const serving = Number(p.serving_quantity) || 100;
     const imageUrl = p.image_front_small_url || p.image_url || null;
@@ -83,9 +85,16 @@ export async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
   if (!cleanQuery) return [];
 
   try {
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(
-      cleanQuery
-    )}&search_simple=1&action=process&json=1&page_size=10`;
+    const params = new URLSearchParams({
+      search_terms: cleanQuery,
+      search_simple: '1',
+      action: 'process',
+      json: '1',
+      page_size: '10',
+      lc: 'es',
+      fields: 'code,product_name,product_name_es,product_name_en,brands,nutriments,serving_quantity,image_front_small_url,image_url',
+    });
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?${params.toString()}`;
 
     const res = await fetch(url, {
       headers: {
@@ -99,7 +108,7 @@ export async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
     if (!data.products || !Array.isArray(data.products)) return [];
 
     return data.products
-      .filter((p: any) => p.product_name && p.nutriments)
+      .filter((p: any) => (p.product_name_es || p.product_name || p.product_name_en) && p.nutriments)
       .map((p: any) => {
         const nutriments = p.nutriments || {};
         let calories = nutriments['energy-kcal_100g'] ?? nutriments['energy-kcal'];
@@ -110,7 +119,7 @@ export async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
         return {
           id: p.code ? `off_${p.code}` : `off_search_${Math.random().toString(36).substring(7)}`,
           barcode: p.code || null,
-          name: p.product_name || p.product_name_en || 'Food Item',
+          name: translateCommonFoodName(p.product_name_es || p.product_name || p.product_name_en || 'Producto sin nombre'),
           brand: p.brands || null,
           calories_100g: Math.round((calories || 0) * 10) / 10,
           protein_100g: Math.round((nutriments.proteins_100g || 0) * 10) / 10,

@@ -135,12 +135,13 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Profile / Supabase Auth Button */}
           <button
             onClick={onOpenAuth}
+            aria-label={isAuthenticated ? 'Mi cuenta' : 'Mi espacio'}
             className="flex items-center space-x-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-emerald-50 border border-emerald-950/10 text-[#405044] transition shrink-0"
           >
             <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
             <User className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
             <span className="hidden sm:inline max-w-[100px] truncate">
-              {isAuthenticated ? userEmail?.split('@')[0] || 'Cuenta' : 'Conectar'}
+              {isAuthenticated ? userEmail?.split('@')[0] || 'Cuenta' : 'Mi espacio'}
             </span>
           </button>
         </div>

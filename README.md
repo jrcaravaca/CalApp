@@ -53,7 +53,8 @@ Desarrollada con **Next.js (App Router)**, **TypeScript**, **Tailwind CSS**, **L
 - **Aislamiento de Claves de API**: `GEMINI_API_KEY` sin prefijo `NEXT_PUBLIC_`, restringida exclusivamente a ejecución en Node.js server-side.
 - **Git Hygiene**: `.gitignore` configurado explícitamente para ignorar `.env*`, `.env*.local`, `.next` y dependencias.
 - **Row Level Security (RLS)**: Migración SQL completa en `supabase/schema.sql` con políticas estrictas basadas en `auth.uid() = user_id` o `auth.uid() = id`.
-- **Modo Offline / Invitado**: Si el usuario navega sin registrarse o antes de migrar la base de datos, la aplicación cuenta con fallback automático en `localStorage` para garantizar interactividad inmediata.
+- **Modo sin cuenta**: El diario puede utilizarse sin iniciar sesión y se guarda en `localStorage` del navegador. Es privado en ese dispositivo, pero no se sincroniza con otros; Safari puede eliminarlo al borrar los datos del sitio.
+- **Sincronización opcional**: Para continuar el mismo diario en varios dispositivos, inicia sesión con Supabase usando una clave pública `publishable`. Nunca configures una clave `secret` o `service_role` en una variable `NEXT_PUBLIC_*`.
 
 ---
 
@@ -106,7 +107,7 @@ CalApp/
 2. Configurar variables de entorno en `.env.local`:
    ```env
    NEXT_PUBLIC_SUPABASE_URL=https://tu-proyecto.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=tu-anon-key
+   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=tu-clave-publishable
    GEMINI_API_KEY=tu-gemini-api-key
    ```
 
@@ -133,7 +134,7 @@ El proyecto incluye el archivo `netlify.toml` preconfigurado:
 1. Conecta tu repositorio de GitHub / GitLab en Netlify.
 2. Agrega las siguientes variables de entorno en **Site Settings > Environment Variables**:
    - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
    - `GEMINI_API_KEY`
 3. Netlify compilará automáticamente el proyecto usando el comando:
    ```bash

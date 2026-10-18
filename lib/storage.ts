@@ -1,5 +1,6 @@
 import { DailyLog, FoodItem, Profile, MealType } from './types';
 import { supabase, isSupabaseConfigured } from './supabase';
+import { translateCommonFoodName } from './foodTranslations';
 
 const DEFAULT_PROFILE: Profile = {
   id: 'guest_user',
@@ -53,6 +54,206 @@ const DEFAULT_FOODS: FoodItem[] = [
     carbs_100g: 49,
     fat_100g: 3.2,
     serving_size_g: 40,
+  },
+  {
+    id: 'f_milk_whole',
+    name: 'Leche entera',
+    brand: 'Genérico',
+    calories_100g: 61,
+    protein_100g: 3.2,
+    carbs_100g: 4.8,
+    fat_100g: 3.3,
+    serving_size_g: 200,
+  },
+  {
+    id: 'f_milk_semi',
+    name: 'Leche semidesnatada',
+    brand: 'Genérico',
+    calories_100g: 47,
+    protein_100g: 3.3,
+    carbs_100g: 4.8,
+    fat_100g: 1.6,
+    serving_size_g: 200,
+  },
+  {
+    id: 'f_milk_skimmed',
+    name: 'Leche desnatada',
+    brand: 'Genérico',
+    calories_100g: 35,
+    protein_100g: 3.4,
+    carbs_100g: 5,
+    fat_100g: 0.1,
+    serving_size_g: 200,
+  },
+  {
+    id: 'f_tomato',
+    name: 'Tomate crudo',
+    brand: 'Genérico',
+    calories_100g: 18,
+    protein_100g: 0.9,
+    carbs_100g: 3.9,
+    fat_100g: 0.2,
+    serving_size_g: 120,
+  },
+  {
+    id: 'f_chicken_raw',
+    name: 'Pechuga de pollo cruda',
+    brand: 'Genérico',
+    calories_100g: 120,
+    protein_100g: 22.5,
+    carbs_100g: 0,
+    fat_100g: 2.6,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_turkey_breast',
+    name: 'Pechuga de pavo',
+    brand: 'Genérico',
+    calories_100g: 135,
+    protein_100g: 29,
+    carbs_100g: 0,
+    fat_100g: 1.5,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_beef_lean',
+    name: 'Ternera magra',
+    brand: 'Genérico',
+    calories_100g: 170,
+    protein_100g: 26,
+    carbs_100g: 0,
+    fat_100g: 7,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_pork_tenderloin',
+    name: 'Lomo de cerdo',
+    brand: 'Genérico',
+    calories_100g: 143,
+    protein_100g: 21,
+    carbs_100g: 0,
+    fat_100g: 6,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_salmon',
+    name: 'Salmón',
+    brand: 'Genérico',
+    calories_100g: 208,
+    protein_100g: 20.4,
+    carbs_100g: 0,
+    fat_100g: 13.4,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_tuna',
+    name: 'Atún al natural escurrido',
+    brand: 'Genérico',
+    calories_100g: 116,
+    protein_100g: 25.5,
+    carbs_100g: 0,
+    fat_100g: 0.8,
+    serving_size_g: 80,
+  },
+  {
+    id: 'f_potato',
+    name: 'Patata cocida',
+    brand: 'Genérico',
+    calories_100g: 87,
+    protein_100g: 1.9,
+    carbs_100g: 20.1,
+    fat_100g: 0.1,
+    serving_size_g: 180,
+  },
+  {
+    id: 'f_pasta_cooked',
+    name: 'Pasta cocida',
+    brand: 'Genérico',
+    calories_100g: 158,
+    protein_100g: 5.8,
+    carbs_100g: 30.9,
+    fat_100g: 0.9,
+    serving_size_g: 180,
+  },
+  {
+    id: 'f_lentils_cooked',
+    name: 'Lentejas cocidas',
+    brand: 'Genérico',
+    calories_100g: 116,
+    protein_100g: 9,
+    carbs_100g: 20.1,
+    fat_100g: 0.4,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_chickpeas_cooked',
+    name: 'Garbanzos cocidos',
+    brand: 'Genérico',
+    calories_100g: 164,
+    protein_100g: 8.9,
+    carbs_100g: 27.4,
+    fat_100g: 2.6,
+    serving_size_g: 150,
+  },
+  {
+    id: 'f_avocado',
+    name: 'Aguacate',
+    brand: 'Genérico',
+    calories_100g: 160,
+    protein_100g: 2,
+    carbs_100g: 8.5,
+    fat_100g: 14.7,
+    serving_size_g: 75,
+  },
+  {
+    id: 'f_apple',
+    name: 'Manzana',
+    brand: 'Genérico',
+    calories_100g: 52,
+    protein_100g: 0.3,
+    carbs_100g: 13.8,
+    fat_100g: 0.2,
+    serving_size_g: 160,
+  },
+  {
+    id: 'f_carrot',
+    name: 'Zanahoria',
+    brand: 'Genérico',
+    calories_100g: 41,
+    protein_100g: 0.9,
+    carbs_100g: 9.6,
+    fat_100g: 0.2,
+    serving_size_g: 80,
+  },
+  {
+    id: 'f_broccoli',
+    name: 'Brócoli',
+    brand: 'Genérico',
+    calories_100g: 34,
+    protein_100g: 2.8,
+    carbs_100g: 6.6,
+    fat_100g: 0.4,
+    serving_size_g: 100,
+  },
+  {
+    id: 'f_onion',
+    name: 'Cebolla',
+    brand: 'Genérico',
+    calories_100g: 40,
+    protein_100g: 1.1,
+    carbs_100g: 9.3,
+    fat_100g: 0.1,
+    serving_size_g: 60,
+  },
+  {
+    id: 'f_cucumber',
+    name: 'Pepino',
+    brand: 'Genérico',
+    calories_100g: 15,
+    protein_100g: 0.7,
+    carbs_100g: 3.6,
+    fat_100g: 0.1,
+    serving_size_g: 100,
   },
   {
     id: 'f_egg',
@@ -182,7 +383,17 @@ export async function getFoodItems(): Promise<FoodItem[]> {
     const stored = localStorage.getItem('fitfree_foods');
     if (stored) {
       try {
-        localFoods = JSON.parse(stored);
+        const storedFoods = JSON.parse(stored) as FoodItem[];
+        localFoods = [...DEFAULT_FOODS];
+        for (const storedFood of storedFoods) {
+          const matchingIndex = localFoods.findIndex((food) =>
+            food.id === storedFood.id || food.name.toLowerCase() === storedFood.name.toLowerCase()
+          );
+          const normalizedFood = { ...storedFood, name: translateCommonFoodName(storedFood.name) };
+          if (matchingIndex >= 0) localFoods[matchingIndex] = { ...localFoods[matchingIndex], ...normalizedFood };
+          else localFoods.push(normalizedFood);
+        }
+        localStorage.setItem('fitfree_foods', JSON.stringify(localFoods));
       } catch (_) {}
     } else {
       localStorage.setItem('fitfree_foods', JSON.stringify(DEFAULT_FOODS));
@@ -193,7 +404,10 @@ export async function getFoodItems(): Promise<FoodItem[]> {
     try {
       const { data, error } = await supabase.from('food_items').select('*').limit(50);
       if (data && !error && data.length > 0) {
-        const merged = [...data];
+        const merged = data.map((food) => ({
+          ...food,
+          name: translateCommonFoodName(food.name),
+        })) as FoodItem[];
         for (const lf of localFoods) {
           if (!merged.some((m) => m.name.toLowerCase() === lf.name.toLowerCase())) {
             merged.push(lf);

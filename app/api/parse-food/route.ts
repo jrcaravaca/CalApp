@@ -37,10 +37,10 @@ Provide standard nutritional values per 100g for each component and compute the 
 
 Return a STRICT JSON object with this exact structure:
 {
-  "meal_name": "Short descriptive meal title (e.g. Oatmeal with Whey & Banana)",
+  "meal_name": "Nombre breve en español (por ejemplo, Avena con proteína y plátano)",
   "items": [
     {
-      "name": "Component name (e.g. Rolled Oats)",
+      "name": "Nombre del alimento en español (por ejemplo, Copos de avena)",
       "serving_grams": 50,
       "calories_100g": 389,
       "protein_100g": 16.9,
@@ -50,17 +50,18 @@ Return a STRICT JSON object with this exact structure:
       "total_protein": 8.5,
       "total_carbs": 33.2,
       "total_fat": 3.5,
-      "notes": "1 standard scoop or portion"
+      "notes": "Descripción breve en español"
     }
   ],
   "total_meal_calories": 450,
   "total_meal_protein": 35.5,
   "total_meal_carbs": 55.0,
   "total_meal_fat": 8.0,
-  "analysis_notes": "Brief 1-sentence health insight"
+  "analysis_notes": "Comentario breve en español"
 }
 
 Ensure all numerical values are positive numbers (no strings).
+Write meal_name, every item name, notes, and analysis_notes in Spanish, even when the food has an English name in the input. Preserve brand names as written.
 If the input is not food, return items as an empty array [] and explain in analysis_notes.
 `;
 
