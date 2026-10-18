@@ -67,18 +67,6 @@ export default function HomePage() {
 
   // Check auth
   const refreshAuth = useCallback(async () => {
-    if (typeof window !== 'undefined') {
-      const local = localStorage.getItem('fitfree_local_user');
-      if (local) {
-        try {
-          const parsed = JSON.parse(local);
-          setIsAuthenticated(true);
-          setUserEmail(parsed.user_metadata?.name || parsed.email || 'Mi Perfil');
-          return;
-        } catch (_) {}
-      }
-    }
-
     if (isSupabaseConfigured) {
       try {
         const { data } = await supabase.auth.getUser();
@@ -93,6 +81,23 @@ export default function HomePage() {
         setIsAuthenticated(false);
       }
     }
+
+    if (typeof window !== 'undefined') {
+      const local = localStorage.getItem('fitfree_local_user');
+      if (local) {
+        try {
+          const parsed = JSON.parse(local);
+          if (parsed.is_local) {
+            setIsAuthenticated(true);
+            setUserEmail(parsed.user_metadata?.name || parsed.email || 'Mi Perfil');
+            return;
+          }
+          localStorage.removeItem('fitfree_local_user');
+        } catch (_) {}
+      }
+    }
+    setIsAuthenticated(false);
+    setUserEmail(undefined);
   }, []);
 
   // Load data for date
@@ -140,31 +145,47 @@ export default function HomePage() {
 
   // Actions
   const handleAddFood = async (mealType: MealType, food: FoodItem, grams: number) => {
-    await saveLogEntry(currentDate, mealType, food, grams);
-    await refreshData();
-    showToast(`✓ "${food.name}" (${grams}g) añadido a tu diario`);
+    try {
+      await saveLogEntry(currentDate, mealType, food, grams);
+      await refreshData();
+      showToast(`✓ "${food.name}" (${grams}g) añadido a tu diario`);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudo guardar el alimento');
+    }
   };
 
   const handleAddMultipleFoods = async (
     mealType: MealType,
     items: { food: FoodItem; grams: number }[]
   ) => {
-    for (const item of items) {
-      await saveLogEntry(currentDate, mealType, item.food, item.grams);
+    try {
+      for (const item of items) {
+        await saveLogEntry(currentDate, mealType, item.food, item.grams);
+      }
+      await refreshData();
+      showToast(`✓ ${items.length} alimentos añadidos con Gemini AI`);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudieron guardar los alimentos');
     }
-    await refreshData();
-    showToast(`✓ ${items.length} alimentos añadidos con Gemini AI`);
   };
 
   const handleUpdateServing = async (logId: string, grams: number) => {
-    await updateLogServing(currentDate, logId, grams);
-    await refreshData();
+    try {
+      await updateLogServing(currentDate, logId, grams);
+      await refreshData();
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudo actualizar la cantidad');
+    }
   };
 
   const handleDeleteLog = async (logId: string) => {
-    await deleteLogEntry(currentDate, logId);
-    await refreshData();
-    showToast('Alimento eliminado');
+    try {
+      await deleteLogEntry(currentDate, logId);
+      await refreshData();
+      showToast('Alimento eliminado');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudo eliminar el alimento');
+    }
   };
 
   const handleSaveProfile = async (updated: Profile) => {

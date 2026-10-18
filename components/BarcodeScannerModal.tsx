@@ -213,7 +213,9 @@ export const BarcodeScannerModal: React.FC<Props> = ({
     if (!isOpen || activeTab !== 'camera') stopCamera();
   }, [isOpen, activeTab, product, useFront]);
 
-  useEffect(() => { setMeal(defaultMealType); }, [defaultMealType]);
+  useEffect(() => {
+    if (isOpen) setMeal(defaultMealType);
+  }, [isOpen, defaultMealType]);
 
   if (!isOpen) return null;
 
@@ -253,6 +255,18 @@ export const BarcodeScannerModal: React.FC<Props> = ({
             ))}
           </div>
         )}
+
+        <div className="px-4 py-2.5 border-b border-white/5 shrink-0">
+          <label className="text-[11px] font-semibold text-slate-400 block mb-1.5">Añadir a:</label>
+          <div className="grid grid-cols-4 gap-1.5">
+            {(Object.keys(MEAL_LABELS) as MealType[]).map((mealType) => (
+              <button key={mealType} onClick={() => setMeal(mealType)}
+                className={`py-1.5 text-[11px] font-bold rounded-lg border text-center transition ${
+                  meal === mealType ? 'bg-emerald-500 text-slate-950 border-emerald-500' : 'bg-white/5 text-slate-400 border-white/5'
+                }`}>{MEAL_LABELS[mealType]}</button>
+            ))}
+          </div>
+        </div>
 
         {/* Body */}
         <div className="p-4 overflow-y-auto flex-1">
@@ -314,17 +328,6 @@ export const BarcodeScannerModal: React.FC<Props> = ({
                         className={`flex-1 text-[11px] font-bold py-1 rounded-lg border transition ${
                           grams === g ? 'bg-emerald-500 text-slate-950 border-emerald-500' : 'bg-white/5 text-slate-300 border-white/5'
                         }`}>{g}</button>
-                    ))}
-                  </div>
-                </div>
-                <div>
-                  <label className="text-xs font-bold text-slate-300 block mb-1.5">Añadir a:</label>
-                  <div className="grid grid-cols-4 gap-1.5">
-                    {(Object.keys(MEAL_LABELS) as MealType[]).map((m) => (
-                      <button key={m} onClick={() => setMeal(m)}
-                        className={`py-1.5 text-[11px] font-bold rounded-xl border text-center transition ${
-                          meal === m ? 'bg-emerald-500 text-slate-950 border-emerald-500' : 'bg-white/5 text-slate-400 border-white/5'
-                        }`}>{MEAL_LABELS[m]}</button>
                     ))}
                   </div>
                 </div>

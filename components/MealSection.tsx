@@ -71,9 +71,13 @@ export const MealSection: React.FC<MealSectionProps> = ({
   const handleToggleMenu = () => {
     if (!showAddMenu && addBtnRef.current) {
       const rect = addBtnRef.current.getBoundingClientRect();
+      const menuHeight = 120;
+      const spaceBelow = window.innerHeight - rect.bottom;
       setMenuPos({
-        top: rect.bottom + window.scrollY + 6,
-        left: rect.left + window.scrollX,
+        top: spaceBelow < menuHeight + 6
+          ? Math.max(8, rect.top - menuHeight - 6)
+          : rect.bottom + 6,
+        left: Math.min(rect.left, window.innerWidth - rect.width - 8),
         width: rect.width,
       });
     }

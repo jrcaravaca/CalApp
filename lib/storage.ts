@@ -35,6 +35,26 @@ const DEFAULT_FOODS: FoodItem[] = [
     serving_size_g: 50,
   },
   {
+    id: 'f_whole_wheat_bread',
+    name: 'Pan integral',
+    brand: 'Genérico',
+    calories_100g: 247,
+    protein_100g: 13,
+    carbs_100g: 41,
+    fat_100g: 3.4,
+    serving_size_g: 40,
+  },
+  {
+    id: 'f_white_bread',
+    name: 'Pan blanco',
+    brand: 'Genérico',
+    calories_100g: 265,
+    protein_100g: 9,
+    carbs_100g: 49,
+    fat_100g: 3.2,
+    serving_size_g: 40,
+  },
+  {
     id: 'f_egg',
     name: 'Huevo Entero Grande',
     brand: 'Granja',
@@ -187,125 +207,101 @@ export async function getFoodItems(): Promise<FoodItem[]> {
   return localFoods;
 }
 
+function isUuid(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
+async function getAuthenticatedUserId(): Promise<string | null> {
+  if (!isSupabaseConfigured || typeof window === 'undefined') return null;
+  const { data, error } = await supabase.auth.getUser();
+  if (error) return null;
+  return data.user?.id || null;
+}
+
+function readCachedLogs(date: string): DailyLog[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(`fitfree_logs_${date}`) || '[]') as DailyLog[];
+  } catch (_) {
+    return [];
+  }
+}
+
+function writeCachedLogs(date: string, logs: DailyLog[]): void {
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(logs));
+  }
+}
+
 export async function saveFoodItemToStore(item: FoodItem): Promise<FoodItem> {
+  let storedItem = item;
+  const userId = await getAuthenticatedUserId();
+
+  if (userId) {
+    const payload = {
+      name: item.name,
+      brand: item.brand || null,
+      barcode: item.barcode || null,
+      calories_100g: item.calories_100g,
+      protein_100g: item.protein_100g,
+      carbs_100g: item.carbs_100g,
+      fat_100g: item.fat_100g,
+      serving_size_g: item.serving_size_g || 100,
+    };
+    let lookup = supabase.from('food_items').select('*');
+    if (item.barcode) lookup = lookup.eq('barcode', item.barcode);
+    else if (isUuid(item.id)) lookup = lookup.eq('id', item.id);
+    else {
+      lookup = lookup.eq('name', item.name);
+      lookup = item.brand ? lookup.eq('brand', item.brand) : lookup.is('brand', null);
+    }
+
+    const { data: existing, error: lookupError } = await lookup.limit(1).maybeSingle();
+    if (lookupError) throw new Error(`No se pudo buscar el alimento: ${lookupError.message}`);
+
+    const result = existing
+      ? await supabase.from('food_items').update(payload).eq('id', existing.id).select().single()
+      : await supabase.from('food_items').insert(payload).select().single();
+    if (result.error || !result.data) {
+      throw new Error(`No se pudo guardar el alimento en Supabase: ${result.error?.message || 'sin respuesta'}`);
+    }
+    storedItem = { ...item, ...result.data } as FoodItem;
+  }
+
   const foods = await getFoodItems();
   const existingIndex = foods.findIndex(
-    (f) => (item.barcode && f.barcode === item.barcode) || f.id === item.id
+    (food) => (storedItem.barcode && food.barcode === storedItem.barcode) ||
+      food.id === storedItem.id ||
+      (food.name.toLowerCase() === storedItem.name.toLowerCase() && food.brand === storedItem.brand)
   );
-
-  let updatedFoods: FoodItem[];
-  if (existingIndex >= 0) {
-    foods[existingIndex] = { ...foods[existingIndex], ...item };
-    updatedFoods = foods;
-  } else {
-    updatedFoods = [item, ...foods];
-  }
+  if (existingIndex >= 0) foods[existingIndex] = { ...foods[existingIndex], ...storedItem };
+  else foods.unshift(storedItem);
 
   if (typeof window !== 'undefined') {
-    localStorage.setItem('fitfree_foods', JSON.stringify(updatedFoods));
+    localStorage.setItem('fitfree_foods', JSON.stringify(foods));
   }
-
-  // Also try saving to Supabase if available
-  if (isSupabaseConfigured) {
-    try {
-      await supabase.from('food_items').upsert({
-        name: item.name,
-        brand: item.brand,
-        barcode: item.barcode || null,
-        calories_100g: item.calories_100g,
-        protein_100g: item.protein_100g,
-        carbs_100g: item.carbs_100g,
-        fat_100g: item.fat_100g,
-        serving_size_g: item.serving_size_g || 100,
-      });
-    } catch (e) {
-      console.warn('Supabase food save fallback:', e);
-    }
-  }
-
-  return item;
+  return storedItem;
 }
 
 export async function getLogsForDate(date: string): Promise<DailyLog[]> {
-  let localLogs: DailyLog[] = [];
-  if (typeof window !== 'undefined') {
-    const raw = localStorage.getItem(`fitfree_logs_${date}`);
-    if (raw) {
-      try {
-        localLogs = JSON.parse(raw);
-      } catch (_) {}
-    } else if (date === getTodayDateString()) {
-      // Seed initial sample meal for today if fresh user
-      localLogs = [
-        {
-          id: 'log_seed_1',
-          user_id: 'guest_user',
-          date,
-          meal_type: 'breakfast',
-          food_id: 'f_oats',
-          serving_grams: 60,
-          food_item: DEFAULT_FOODS[1],
-        },
-        {
-          id: 'log_seed_2',
-          user_id: 'guest_user',
-          date,
-          meal_type: 'breakfast',
-          food_id: 'f_banana',
-          serving_grams: 110,
-          food_item: DEFAULT_FOODS[4],
-        },
-        {
-          id: 'log_seed_3',
-          user_id: 'guest_user',
-          date,
-          meal_type: 'lunch',
-          food_id: 'f_chicken',
-          serving_grams: 180,
-          food_item: DEFAULT_FOODS[0],
-        },
-        {
-          id: 'log_seed_4',
-          user_id: 'guest_user',
-          date,
-          meal_type: 'lunch',
-          food_id: 'f_rice',
-          serving_grams: 200,
-          food_item: DEFAULT_FOODS[3],
-        },
-        {
-          id: 'log_seed_5',
-          user_id: 'guest_user',
-          date,
-          meal_type: 'lunch',
-          food_id: 'f_olive_oil',
-          serving_grams: 10,
-          food_item: DEFAULT_FOODS[5],
-        },
-      ];
-      localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(localLogs));
-    }
+  const localLogs = readCachedLogs(date);
+  const userId = await getAuthenticatedUserId();
+  if (!userId) return localLogs;
+
+  const { data, error } = await supabase
+    .from('daily_logs')
+    .select('*, food_item:food_items(*)')
+    .eq('user_id', userId)
+    .eq('date', date);
+
+  if (error) {
+    console.warn('Supabase log load fallback:', error.message);
+    return localLogs;
   }
 
-  // Attempt Supabase fetch if signed in
-  if (isSupabaseConfigured) {
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (authData?.user) {
-        const { data, error } = await supabase
-          .from('daily_logs')
-          .select('*, food_item:food_items(*)')
-          .eq('user_id', authData.user.id)
-          .eq('date', date);
-
-        if (data && !error && data.length > 0) {
-          return data as DailyLog[];
-        }
-      }
-    } catch (_) {}
-  }
-
-  return localLogs;
+  const logs = (data || []) as DailyLog[];
+  writeCachedLogs(date, logs);
+  return logs;
 }
 
 export async function saveLogEntry(
@@ -314,51 +310,33 @@ export async function saveLogEntry(
   food: FoodItem,
   serving_grams: number
 ): Promise<DailyLog> {
-  await saveFoodItemToStore(food);
+  const userId = await getAuthenticatedUserId();
+  const storedFood = await saveFoodItemToStore(food);
+
+  if (userId) {
+    const { data, error } = await supabase
+      .from('daily_logs')
+      .insert({ user_id: userId, date, meal_type, food_id: storedFood.id, serving_grams })
+      .select('*, food_item:food_items(*)')
+      .single();
+    if (error || !data) {
+      throw new Error(`No se pudo guardar el registro: ${error?.message || 'sin respuesta'}`);
+    }
+    const savedLog = data as DailyLog;
+    writeCachedLogs(date, [...readCachedLogs(date), savedLog]);
+    return savedLog;
+  }
 
   const newLog: DailyLog = {
     id: `log_${Date.now()}_${Math.random().toString(36).substring(7)}`,
     user_id: 'guest_user',
     date,
     meal_type,
-    food_id: food.id,
+    food_id: storedFood.id,
     serving_grams,
-    food_item: food,
+    food_item: storedFood,
   };
-
-  if (typeof window !== 'undefined') {
-    const logs = await getLogsForDate(date);
-    const updated = [...logs, newLog];
-    localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(updated));
-  }
-
-  // Try Supabase insert
-  if (isSupabaseConfigured) {
-    try {
-      const { data: authData } = await supabase.auth.getUser();
-      if (authData?.user) {
-        newLog.user_id = authData.user.id;
-        const { data, error } = await supabase
-          .from('daily_logs')
-          .insert({
-            user_id: authData.user.id,
-            date,
-            meal_type,
-            food_id: food.id,
-            serving_grams,
-          })
-          .select('*, food_item:food_items(*)')
-          .single();
-
-        if (data && !error) {
-          return data as DailyLog;
-        }
-      }
-    } catch (e) {
-      console.warn('Supabase log insert fallback:', e);
-    }
-  }
-
+  writeCachedLogs(date, [...readCachedLogs(date), newLog]);
   return newLog;
 }
 
@@ -367,29 +345,29 @@ export async function updateLogServing(
   logId: string,
   newGrams: number
 ): Promise<void> {
-  if (typeof window !== 'undefined') {
-    const logs = await getLogsForDate(date);
-    const updated = logs.map((l) => (l.id === logId ? { ...l, serving_grams: newGrams } : l));
-    localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(updated));
+  const userId = await getAuthenticatedUserId();
+  if (userId) {
+    const { error } = await supabase
+      .from('daily_logs')
+      .update({ serving_grams: newGrams })
+      .eq('id', logId)
+      .eq('user_id', userId);
+    if (error) throw new Error(`No se pudo actualizar el registro: ${error.message}`);
   }
-
-  if (isSupabaseConfigured) {
-    try {
-      await supabase.from('daily_logs').update({ serving_grams: newGrams }).eq('id', logId);
-    } catch (_) {}
-  }
+  writeCachedLogs(date, readCachedLogs(date).map((log) =>
+    log.id === logId ? { ...log, serving_grams: newGrams } : log
+  ));
 }
 
 export async function deleteLogEntry(date: string, logId: string): Promise<void> {
-  if (typeof window !== 'undefined') {
-    const logs = await getLogsForDate(date);
-    const filtered = logs.filter((l) => l.id !== logId);
-    localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(filtered));
+  const userId = await getAuthenticatedUserId();
+  if (userId) {
+    const { error } = await supabase
+      .from('daily_logs')
+      .delete()
+      .eq('id', logId)
+      .eq('user_id', userId);
+    if (error) throw new Error(`No se pudo eliminar el registro: ${error.message}`);
   }
-
-  if (isSupabaseConfigured) {
-    try {
-      await supabase.from('daily_logs').delete().eq('id', logId);
-    } catch (_) {}
-  }
+  writeCachedLogs(date, readCachedLogs(date).filter((log) => log.id !== logId));
 }

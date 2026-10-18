@@ -37,17 +37,24 @@ export const AuthModal: React.FC<AuthModalProps> = ({
 
   useEffect(() => {
     if (isOpen) {
-      // Check existing local or Supabase user
-      const localUser = localStorage.getItem('fitfree_local_user');
-      if (localUser) {
-        try {
-          setUser(JSON.parse(localUser));
-        } catch (_) {}
-      } else if (isSupabaseConfigured) {
-        supabase.auth.getUser().then(({ data }) => {
-          if (data?.user) setUser(data.user);
-        });
-      }
+      const checkUser = async () => {
+        if (isSupabaseConfigured) {
+          const { data } = await supabase.auth.getUser();
+          if (data?.user) {
+            setUser(data.user);
+            return;
+          }
+        }
+        const localUser = localStorage.getItem('fitfree_local_user');
+        if (localUser) {
+          try {
+            const parsedUser = JSON.parse(localUser);
+            if (parsedUser.is_local) setUser(parsedUser);
+            else localStorage.removeItem('fitfree_local_user');
+          } catch (_) {}
+        }
+      };
+      checkUser();
     }
   }, [isOpen]);
 
@@ -71,9 +78,20 @@ export const AuthModal: React.FC<AuthModalProps> = ({
         throw new Error(data.error || 'Error de autenticación.');
       }
 
-      const activeUser = data.user || { email, id: `user_${Date.now()}` };
-      localStorage.setItem('fitfree_local_user', JSON.stringify(activeUser));
-      setUser(activeUser);
+      if (data.session) {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: data.session.access_token,
+          refresh_token: data.session.refresh_token,
+        });
+        if (sessionError) throw sessionError;
+        setUser(data.user);
+      } else if (action === 'signup') {
+        setMessage({
+          text: 'Cuenta creada. Revisa tu correo para confirmar y después inicia sesión.',
+          type: 'success',
+        });
+        return;
+      }
 
       setMessage({
         text: action === 'signup' ? '¡Cuenta creada con éxito!' : '¡Sesión iniciada con éxito!',
@@ -112,10 +130,8 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       if (!isSupabaseConfigured) throw new Error('Supabase no configurado');
       const { data, error } = await supabase.auth.signInAnonymously();
       if (error) throw error;
-      const anonUser = data.user || { id: `anon_${Date.now()}`, email: 'invitado@fitfree.app', is_anonymous: true };
-      localStorage.setItem('fitfree_local_user', JSON.stringify({ ...anonUser, is_local: false, is_anonymous: true }));
-      setUser(anonUser);
-      setMessage({ text: '¡Sesión anónima activa! Tus datos se guardan localmente.', type: 'success' });
+      setUser(data.user);
+      setMessage({ text: 'Sesión anónima activa en este dispositivo.', type: 'success' });
       onAuthChange();
       setTimeout(onClose, 1200);
     } catch (err: any) {

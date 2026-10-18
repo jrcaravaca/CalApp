@@ -45,8 +45,8 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({
   const [customFat, setCustomFat] = useState<number>(5);
 
   useEffect(() => {
-    setSelectedMeal(defaultMealType);
-  }, [defaultMealType]);
+    if (isOpen) setSelectedMeal(defaultMealType);
+  }, [isOpen, defaultMealType]);
 
   useEffect(() => {
     if (isOpen) {

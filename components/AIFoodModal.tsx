@@ -43,6 +43,10 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
+  React.useEffect(() => {
+    if (isOpen) setSelectedMeal(defaultMealType);
+  }, [isOpen, defaultMealType]);
+
   const SAMPLE_MEALS = [
     '3 huevos revueltos con 1 rebanada de pan integral y 10g mantequilla',
     'Bol de 60g de avena con 30g de proteína whey y medio plátano',
@@ -237,6 +241,28 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
           </div>
         )}
 
+        <div className="px-4 py-2.5 border-b border-white/5">
+          <label className="text-[11px] font-semibold text-slate-400 block mb-1.5">Guardar en comida:</label>
+          <div className="grid grid-cols-4 gap-1.5">
+            {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
+              const labels: Record<MealType, string> = {
+                breakfast: 'Desayuno',
+                lunch: 'Almuerzo',
+                dinner: 'Cena',
+                snack: 'Snack',
+              };
+              return (
+                <button key={mealType} onClick={() => setSelectedMeal(mealType)}
+                  className={`py-1.5 px-1 text-[11px] font-semibold rounded-lg border text-center transition ${
+                    selectedMeal === mealType
+                      ? 'bg-emerald-500 text-slate-950 border-emerald-500'
+                      : 'bg-white/5 text-slate-400 border-white/5 hover:text-white'
+                  }`}>{labels[mealType]}</button>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Body Content */}
         <div className="p-4 overflow-y-auto flex-1 space-y-4">
           {isLoading ? (
@@ -337,36 +363,6 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                     </div>
                   </div>
                 ))}
-              </div>
-
-              {/* Meal Type selector */}
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
-                  Guardar en comida:
-                </label>
-                <div className="grid grid-cols-4 gap-1.5">
-                  {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((m) => {
-                    const labels: Record<MealType, string> = {
-                      breakfast: 'Desayuno',
-                      lunch: 'Almuerzo',
-                      dinner: 'Cena',
-                      snack: 'Snack',
-                    };
-                    return (
-                      <button
-                        key={m}
-                        onClick={() => setSelectedMeal(m)}
-                        className={`py-1.5 px-1 text-[11px] font-semibold rounded-xl border text-center transition ${
-                          selectedMeal === m
-                            ? 'bg-emerald-500 text-slate-950 border-emerald-500'
-                            : 'bg-white/5 text-slate-400 border-white/5 hover:text-white'
-                        }`}
-                      >
-                        {labels[m]}
-                      </button>
-                    );
-                  })}
-                </div>
               </div>
 
               {/* Action buttons */}
