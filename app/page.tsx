@@ -195,7 +195,7 @@ export default function HomePage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#080C14] text-slate-100 flex flex-col font-sans">
+    <div className="min-h-screen text-[#26352d] flex flex-col font-sans">
       {/* Navbar & Header */}
       <Navbar
         currentDate={currentDate}
@@ -225,37 +225,37 @@ export default function HomePage() {
           {/* AI Parser */}
           <button
             onClick={() => handleOpenAI()}
-            className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/90 border border-emerald-500/20 hover:border-emerald-500/40 text-left transition group shadow-lg"
+            className="p-3 rounded-2xl bg-white border border-emerald-900/10 hover:border-emerald-500/50 text-left transition group shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
           >
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
               <Sparkles className="w-4 h-4" />
             </div>
-            <p className="text-xs font-bold text-white group-hover:text-emerald-400">IA Scan</p>
-            <p className="text-[10px] text-slate-400">Gemini 2.5</p>
+            <p className="text-xs font-bold text-[#26352d]">IA Scan</p>
+            <p className="text-[10px] text-[#748276]">Gemini 2.5</p>
           </button>
 
           {/* Barcode Scanner */}
           <button
             onClick={() => handleOpenScanner()}
-            className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/90 border border-sky-500/20 hover:border-sky-500/40 text-left transition group shadow-lg"
+            className="p-3 rounded-2xl bg-white border border-sky-900/10 hover:border-sky-500/50 text-left transition shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
           >
-            <div className="w-8 h-8 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
+            <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
               <ScanBarcode className="w-4 h-4" />
             </div>
-            <p className="text-xs font-bold text-white group-hover:text-sky-300">Código</p>
-            <p className="text-[10px] text-slate-400">Open Food Facts</p>
+            <p className="text-xs font-bold text-[#26352d]">Código</p>
+            <p className="text-[10px] text-[#748276]">Open Food Facts</p>
           </button>
 
           {/* Macro Scaler */}
           <button
             onClick={() => handleOpenScaler()}
-            className="p-3 rounded-2xl bg-gradient-to-br from-slate-900 to-slate-900/90 border border-indigo-500/20 hover:border-indigo-500/40 text-left transition group shadow-lg"
+            className="p-3 rounded-2xl bg-white border border-orange-900/10 hover:border-orange-400/60 text-left transition shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
           >
-            <div className="w-8 h-8 rounded-xl bg-indigo-500/10 text-indigo-400 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
+            <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
               <Scale className="w-4 h-4" />
             </div>
-            <p className="text-xs font-bold text-white group-hover:text-indigo-300">Escalar</p>
-            <p className="text-[10px] text-slate-400">Fitia Pro Clone</p>
+            <p className="text-xs font-bold text-[#26352d]">Escalar</p>
+            <p className="text-[10px] text-[#748276]">Ajustar porciones</p>
           </button>
         </div>
 

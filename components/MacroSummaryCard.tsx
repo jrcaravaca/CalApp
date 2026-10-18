@@ -67,17 +67,16 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
   const fPercent = Math.min(100, Math.round((consumedFat / targetFat) * 100));
 
   return (
-    <div className="glass-panel rounded-3xl p-5 border border-white/10 shadow-2xl relative overflow-hidden">
+    <div className="glass-panel rounded-3xl p-5 border border-emerald-950/5 shadow-xl relative overflow-hidden">
       {/* Background radial glow */}
-      <div className="absolute top-0 right-1/4 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 left-10 w-48 h-48 bg-sky-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-lime-400 via-emerald-400 to-orange-300 pointer-events-none" />
 
       {/* Top Title & Quick Action Buttons */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-          <h2 className="text-sm font-bold uppercase tracking-wider text-slate-300">
-            Resumen de Nutrientes
+          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
+          <h2 className="text-sm font-extrabold text-[#34463a]">
+            Tu día, en equilibrio
           </h2>
         </div>
 
@@ -86,17 +85,17 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
           {/* Direct Coach Preset Button */}
           <button
             onClick={() => onOpenTDEE('trainer')}
-            className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40 flex items-center gap-1.5 shadow-sm transition group"
+            className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 shadow-sm transition group"
             title="Ajustar las calorías y gramos pautados por tu entrenador"
           >
-            <Dumbbell className="w-3.5 h-3.5 text-emerald-400 group-hover:scale-110 transition" />
+            <Dumbbell className="w-3.5 h-3.5 text-emerald-700 group-hover:scale-110 transition" />
             <span>Pauta de Entrenador</span>
           </button>
 
           {/* Calculator */}
           <button
             onClick={() => onOpenTDEE('calculator')}
-            className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-white/5 hover:bg-white/10 text-slate-400 hover:text-white border border-white/5 transition"
+            className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-white hover:bg-orange-50 text-[#68766b] hover:text-orange-800 border border-emerald-950/10 transition"
             title="Calcular TDEE con fórmula Mifflin-St Jeor"
           >
             <span>TDEE</span>
@@ -120,7 +119,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
                 cx="80"
                 cy="80"
                 r={radius}
-                className="text-slate-800"
+                className="text-[#e5ebe1]"
                 strokeWidth="12"
                 stroke="currentColor"
                 fill="transparent"
@@ -130,7 +129,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
                 cx="80"
                 cy="80"
                 r={radius}
-                className="text-emerald-500 transition-all duration-700 ease-out"
+                className="text-orange-400 transition-all duration-700 ease-out"
                 strokeWidth="12"
                 strokeDasharray={circumference}
                 strokeDashoffset={strokeDashoffset}
@@ -142,24 +141,24 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
 
             {/* Inner Ring Text */}
             <div className="absolute flex flex-col items-center text-center">
-              <span className="text-3xl font-extrabold text-white tracking-tight">
+              <span className="text-3xl font-extrabold text-[#26352d]">
                 {remainingCalories}
               </span>
-              <span className="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">
+              <span className="text-[11px] font-bold text-emerald-700">
                 Kcal Restantes
               </span>
-              <div className="flex items-center gap-1 mt-1 text-[10px] text-slate-400">
+              <div className="flex items-center gap-1 mt-1 text-[10px] text-[#879287]">
                 <span>{consumedCalories}</span>
                 <span>/</span>
-                <span className="font-bold text-slate-200">{targetCalories} kcal</span>
-                <Edit3 className="w-2.5 h-2.5 text-emerald-400 opacity-0 group-hover:opacity-100 transition" />
+                <span className="font-bold text-[#526156]">{targetCalories} kcal</span>
+                <Edit3 className="w-2.5 h-2.5 text-emerald-700 opacity-0 group-hover:opacity-100 transition" />
               </div>
             </div>
           </div>
 
           <div className="mt-2 text-center">
-            <span className="inline-flex items-center gap-1 text-[11px] font-medium text-slate-300 bg-white/5 px-2.5 py-0.5 rounded-full border border-white/5 group-hover:border-emerald-500/30 transition">
-              <TrendingUp className="w-3 h-3 text-emerald-400" />
+            <span className="inline-flex items-center gap-1 text-[11px] font-semibold text-[#56665a] bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-100 group-hover:border-emerald-300 transition">
+              <TrendingUp className="w-3 h-3 text-emerald-700" />
               {calPercent}% de tu meta diaria
             </span>
           </div>
@@ -170,7 +169,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
           {/* Proteínas */}
           <div
             onClick={() => onOpenTDEE('trainer')}
-            className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 hover:border-rose-500/40 cursor-pointer transition group"
+            className="bg-[#fff9f7] border border-rose-100 rounded-2xl p-3 hover:border-rose-300 cursor-pointer transition group"
             title="Haz clic para modificar la proteína pautada"
           >
             <div className="flex items-center justify-between text-xs mb-1.5">
@@ -179,20 +178,20 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
                   <Dumbbell className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <span className="font-bold text-slate-200">Proteína</span>
-                  <span className="text-[10px] text-slate-400 ml-1.5 font-medium">
+                  <span className="font-bold text-[#3f4a41]">Proteína</span>
+                  <span className="text-[10px] text-[#879287] ml-1.5 font-medium">
                     {proteinLeft}g restantes
                   </span>
                 </div>
               </div>
               <div className="text-right flex items-center gap-1">
                 <span className="font-extrabold text-rose-400">{consumedProtein}</span>
-                <span className="text-slate-400 text-[11px] font-bold"> / {targetProtein}g</span>
+                <span className="text-[#879287] text-[11px] font-bold"> / {targetProtein}g</span>
                 <Edit3 className="w-3 h-3 text-rose-400 opacity-0 group-hover:opacity-100 transition ml-0.5" />
               </div>
             </div>
             {/* Progress track */}
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-rose-100 rounded-full h-2 overflow-hidden">
               <div
                 className="bg-rose-500 h-2 rounded-full transition-all duration-500 shadow-sm shadow-rose-500/50"
                 style={{ width: `${pPercent}%` }}
@@ -203,7 +202,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
           {/* Carbohidratos */}
           <div
             onClick={() => onOpenTDEE('trainer')}
-            className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 hover:border-sky-500/40 cursor-pointer transition group"
+            className="bg-[#f6fbff] border border-sky-100 rounded-2xl p-3 hover:border-sky-300 cursor-pointer transition group"
             title="Haz clic para modificar los carbohidratos pautados"
           >
             <div className="flex items-center justify-between text-xs mb-1.5">
@@ -212,20 +211,20 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
                   <Wheat className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <span className="font-bold text-slate-200">Carbohidratos</span>
-                  <span className="text-[10px] text-slate-400 ml-1.5 font-medium">
+                  <span className="font-bold text-[#3f4a41]">Carbohidratos</span>
+                  <span className="text-[10px] text-[#879287] ml-1.5 font-medium">
                     {carbsLeft}g restantes
                   </span>
                 </div>
               </div>
               <div className="text-right flex items-center gap-1">
                 <span className="font-extrabold text-sky-400">{consumedCarbs}</span>
-                <span className="text-slate-400 text-[11px] font-bold"> / {targetCarbs}g</span>
+                <span className="text-[#879287] text-[11px] font-bold"> / {targetCarbs}g</span>
                 <Edit3 className="w-3 h-3 text-sky-400 opacity-0 group-hover:opacity-100 transition ml-0.5" />
               </div>
             </div>
             {/* Progress track */}
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-sky-100 rounded-full h-2 overflow-hidden">
               <div
                 className="bg-sky-400 h-2 rounded-full transition-all duration-500 shadow-sm shadow-sky-400/50"
                 style={{ width: `${cPercent}%` }}
@@ -236,7 +235,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
           {/* Grasas */}
           <div
             onClick={() => onOpenTDEE('trainer')}
-            className="bg-slate-900/60 border border-white/5 rounded-2xl p-3 hover:border-amber-500/40 cursor-pointer transition group"
+            className="bg-[#fffaf0] border border-amber-100 rounded-2xl p-3 hover:border-amber-300 cursor-pointer transition group"
             title="Haz clic para modificar las grasas pautadas"
           >
             <div className="flex items-center justify-between text-xs mb-1.5">
@@ -245,20 +244,20 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
                   <Droplets className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <span className="font-bold text-slate-200">Grasas</span>
-                  <span className="text-[10px] text-slate-400 ml-1.5 font-medium">
+                  <span className="font-bold text-[#3f4a41]">Grasas</span>
+                  <span className="text-[10px] text-[#879287] ml-1.5 font-medium">
                     {fatLeft}g restantes
                   </span>
                 </div>
               </div>
               <div className="text-right flex items-center gap-1">
                 <span className="font-extrabold text-amber-400">{consumedFat}</span>
-                <span className="text-slate-400 text-[11px] font-bold"> / {targetFat}g</span>
+                <span className="text-[#879287] text-[11px] font-bold"> / {targetFat}g</span>
                 <Edit3 className="w-3 h-3 text-amber-400 opacity-0 group-hover:opacity-100 transition ml-0.5" />
               </div>
             </div>
             {/* Progress track */}
-            <div className="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+            <div className="w-full bg-amber-100 rounded-full h-2 overflow-hidden">
               <div
                 className="bg-amber-400 h-2 rounded-full transition-all duration-500 shadow-sm shadow-amber-400/50"
                 style={{ width: `${fPercent}%` }}

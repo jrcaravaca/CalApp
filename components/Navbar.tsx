@@ -91,42 +91,42 @@ export const Navbar: React.FC<NavbarProps> = ({
   return (
     <>
       {/* Top Header */}
-      <header className="sticky top-0 z-30 w-full glass-panel border-b border-white/5 bg-[#080C14]/90 backdrop-blur-md px-4 py-3">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
+      <header className="sticky top-0 z-30 w-full border-b border-emerald-950/5 bg-white/90 backdrop-blur-md px-4 py-3 shadow-[0_4px_20px_rgba(48,76,50,0.05)]">
+        <div className="max-w-4xl mx-auto flex items-center justify-between gap-2">
           {/* Logo & Fitia Clone branding */}
-          <div className="flex items-center space-x-2.5 cursor-pointer" onClick={() => setActiveTab('diary')}>
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-emerald-600 to-emerald-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <div className="flex items-center space-x-2 cursor-pointer min-w-0" onClick={() => setActiveTab('diary')}>
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-gradient-to-br from-emerald-600 to-lime-400 flex items-center justify-center shadow-md shadow-emerald-800/15 shrink-0">
               <Flame className="w-5 h-5 text-white fill-white" />
             </div>
             <div>
               <div className="flex items-center space-x-1.5">
-                <span className="font-extrabold text-lg tracking-tight bg-gradient-to-r from-white via-slate-100 to-slate-300 bg-clip-text text-transparent">
+                <span className="font-extrabold text-base sm:text-lg tracking-tight text-[#26352d]">
                   FitFree
                 </span>
-                <span className="text-[10px] uppercase font-bold tracking-wider px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 flex items-center gap-1">
+                <span className="text-[10px] uppercase font-bold px-1.5 py-0.5 rounded-full bg-orange-100 text-orange-800 border border-orange-200 flex items-center gap-1">
                   <Sparkles className="w-2.5 h-2.5" /> PRO
                 </span>
               </div>
-              <p className="text-[11px] text-slate-400 font-medium">Smart Macro & Food Tracker</p>
+              <p className="hidden sm:block text-[11px] text-[#718075] font-medium">Tu diario de alimentación</p>
             </div>
           </div>
 
           {/* Date Selector */}
-          <div className="flex items-center space-x-1 bg-slate-900/80 border border-white/10 rounded-full px-2 py-1 shadow-inner">
+          <div className="flex items-center space-x-0.5 sm:space-x-1 bg-[#f4f7ef] border border-emerald-950/10 rounded-full px-1.5 sm:px-2 py-1 shrink-0">
             <button
               onClick={handlePrevDay}
               aria-label="Día anterior"
-              className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className="p-1 rounded-full text-[#768578] hover:text-emerald-800 hover:bg-emerald-100 transition shrink-0"
             >
               <ChevronLeft className="w-4 h-4" />
             </button>
-            <span className="px-2 text-xs font-semibold text-slate-200 min-w-[70px] text-center">
+            <span className="px-1.5 sm:px-2 text-xs font-semibold text-[#35453a] min-w-[48px] sm:min-w-[70px] text-center">
               {formatDisplayDate(currentDate)}
             </span>
             <button
               onClick={handleNextDay}
               aria-label="Día siguiente"
-              className="p-1 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition"
+              className="p-1 rounded-full text-[#768578] hover:text-emerald-800 hover:bg-emerald-100 transition shrink-0"
             >
               <ChevronRight className="w-4 h-4" />
             </button>
@@ -135,10 +135,10 @@ export const Navbar: React.FC<NavbarProps> = ({
           {/* User Profile / Supabase Auth Button */}
           <button
             onClick={onOpenAuth}
-            className="flex items-center space-x-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-white/5 hover:bg-white/10 border border-white/10 text-slate-200 transition"
+            className="flex items-center space-x-1.5 px-2 sm:px-3 py-1.5 rounded-full text-xs font-semibold bg-white hover:bg-emerald-50 border border-emerald-950/10 text-[#405044] transition shrink-0"
           >
             <div className={`w-2 h-2 rounded-full ${isAuthenticated ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`} />
-            <User className="w-3.5 h-3.5 text-slate-300" />
+            <User className="w-3.5 h-3.5 text-emerald-700 shrink-0" />
             <span className="hidden sm:inline max-w-[100px] truncate">
               {isAuthenticated ? userEmail?.split('@')[0] || 'Cuenta' : 'Conectar'}
             </span>
@@ -147,15 +147,15 @@ export const Navbar: React.FC<NavbarProps> = ({
       </header>
 
       {/* Bottom Navigation for Mobile / Tablet */}
-      <nav className="fixed bottom-0 left-0 right-0 z-30 glass-panel border-t border-white/5 bg-[#090D17]/95 backdrop-blur-xl px-2 py-2 safe-area-pb">
+      <nav className="fixed bottom-0 left-0 right-0 z-30 bg-white/95 border-t border-emerald-950/10 backdrop-blur-xl px-2 py-2 safe-area-pb shadow-[0_-6px_24px_rgba(48,76,50,0.08)]">
         <div className="max-w-lg mx-auto flex items-center justify-around">
           {/* Diario */}
           <button
             onClick={() => setActiveTab('diary')}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
               activeTab === 'diary'
-                ? 'text-emerald-400'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-emerald-700'
+                : 'text-[#879287] hover:text-emerald-800'
             }`}
           >
             <BookOpen className="w-5 h-5 mb-0.5" />
@@ -170,8 +170,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
               activeTab === 'scanner'
-                ? 'text-emerald-400'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-emerald-700'
+                : 'text-[#879287] hover:text-emerald-800'
             }`}
           >
             <ScanBarcode className="w-5 h-5 mb-0.5" />
@@ -186,10 +186,10 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className="relative -top-3.5 group flex flex-col items-center"
           >
-            <div className="w-13 h-13 p-3.5 rounded-2xl bg-gradient-to-tr from-emerald-500 via-teal-400 to-emerald-300 text-slate-950 font-bold shadow-lg shadow-emerald-500/30 group-hover:scale-105 group-active:scale-95 transition flex items-center justify-center">
-              <Camera className="w-6 h-6 text-slate-950" />
+            <div className="w-13 h-13 p-3.5 rounded-2xl bg-gradient-to-br from-orange-400 to-rose-400 text-white font-bold shadow-lg shadow-orange-500/25 group-hover:scale-105 group-active:scale-95 transition flex items-center justify-center">
+              <Camera className="w-6 h-6 text-white" />
             </div>
-            <span className="text-[10px] font-bold text-emerald-400 mt-0.5 flex items-center gap-0.5">
+            <span className="text-[10px] font-bold text-orange-700 mt-0.5 flex items-center gap-0.5">
               IA Scan
             </span>
           </button>
@@ -202,8 +202,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
               activeTab === 'scaler'
-                ? 'text-emerald-400'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-emerald-700'
+                : 'text-[#879287] hover:text-emerald-800'
             }`}
           >
             <Scale className="w-5 h-5 mb-0.5" />
@@ -218,8 +218,8 @@ export const Navbar: React.FC<NavbarProps> = ({
             }}
             className={`flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition ${
               activeTab === 'tdee'
-                ? 'text-emerald-400'
-                : 'text-slate-400 hover:text-slate-200'
+                ? 'text-emerald-700'
+                : 'text-[#879287] hover:text-emerald-800'
             }`}
           >
             <Target className="w-5 h-5 mb-0.5" />

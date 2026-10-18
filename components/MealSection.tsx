@@ -120,17 +120,17 @@ export const MealSection: React.FC<MealSectionProps> = ({
   };
 
   return (
-    <div className="glass-panel rounded-2xl p-4 border border-white/5 transition duration-200 hover:border-white/10">
+    <div className="glass-panel rounded-2xl p-4 border border-emerald-950/5 transition duration-200 hover:border-emerald-300">
       {/* Meal Header */}
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center space-x-2.5">
-          <div className="w-8 h-8 rounded-xl bg-slate-900 border border-white/5 flex items-center justify-center shadow-inner">
+          <div className="w-8 h-8 rounded-xl bg-[#f3f7ef] border border-emerald-950/5 flex items-center justify-center">
             <IconComponent className={`w-4 h-4 ${config.color}`} />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-100">{config.label}</h3>
-            <div className="flex items-center gap-1.5 text-[11px] text-slate-400">
-              <span className="font-semibold text-white">{totalCalories} kcal</span>
+            <h3 className="text-sm font-extrabold text-[#34463a]">{config.label}</h3>
+            <div className="flex items-center gap-1.5 text-[11px] text-[#89958a]">
+              <span className="font-semibold text-[#526156]">{totalCalories} kcal</span>
               <span>•</span>
               <span className="text-rose-400 font-medium">{totalProtein}g P</span>
               <span>•</span>
@@ -157,8 +157,8 @@ export const MealSection: React.FC<MealSectionProps> = ({
       {/* Logged Items List */}
       <div className="space-y-2 mb-3">
         {mealLogs.length === 0 ? (
-          <div className="text-center py-4 bg-slate-900/40 rounded-xl border border-white/5 border-dashed">
-            <p className="text-xs text-slate-500">No hay alimentos registrados en {config.label.toLowerCase()}</p>
+          <div className="text-center py-4 bg-[#f8faf5] rounded-xl border border-emerald-950/10 border-dashed">
+            <p className="text-xs text-[#89958a]">No hay alimentos registrados en {config.label.toLowerCase()}</p>
           </div>
         ) : (
           mealLogs.map((log) => {
@@ -176,19 +176,19 @@ export const MealSection: React.FC<MealSectionProps> = ({
             return (
               <div
                 key={log.id}
-                className="group flex items-center justify-between p-2.5 rounded-xl bg-slate-900/50 hover:bg-slate-900/80 border border-white/5 transition"
+                className="group flex items-center justify-between p-2.5 rounded-xl bg-[#f8faf6] hover:bg-emerald-50 border border-emerald-950/5 transition"
               >
                 {/* Left: Food details */}
                 <div className="flex-1 min-w-0 pr-3">
                   <div className="flex items-center gap-1.5">
-                    <p className="text-xs font-semibold text-slate-200 truncate">{food.name}</p>
+                    <p className="text-xs font-semibold text-[#35453a] truncate">{food.name}</p>
                     {food.brand && (
-                      <span className="text-[10px] text-slate-400 truncate hidden xs:inline">
+                      <span className="text-[10px] text-[#879287] truncate hidden xs:inline">
                         ({food.brand})
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-slate-400">
+                  <div className="flex items-center gap-2 mt-0.5 text-[11px] text-[#879287]">
                     {isEditing ? (
                       <div className="flex items-center gap-1">
                         <input
@@ -197,10 +197,10 @@ export const MealSection: React.FC<MealSectionProps> = ({
                           max="2000"
                           value={tempGrams}
                           onChange={(e) => setTempGrams(Number(e.target.value))}
-                          className="w-16 px-1.5 py-0.5 bg-slate-800 border border-emerald-500 rounded text-xs text-white focus:outline-none"
+                          className="w-16 px-1.5 py-0.5 bg-white border border-emerald-500 rounded text-xs text-[#26352d] focus:outline-none"
                           autoFocus
                         />
-                        <span className="text-xs text-slate-400">g</span>
+                        <span className="text-xs text-[#879287]">g</span>
                         <button
                           onClick={() => handleSaveEdit(log.id)}
                           className="p-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500/30"
@@ -211,7 +211,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
                     ) : (
                       <button
                         onClick={() => handleStartEdit(log)}
-                        className="flex items-center gap-1 text-slate-300 hover:text-emerald-400 underline decoration-dotted font-medium"
+                        className="flex items-center gap-1 text-[#657367] hover:text-emerald-700 underline decoration-dotted font-medium"
                         title="Editar cantidad"
                       >
                         <span>{g}g</span>
@@ -229,12 +229,12 @@ export const MealSection: React.FC<MealSectionProps> = ({
 
                 {/* Right: Calories & Delete */}
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs font-bold text-slate-100 min-w-[50px] text-right">
+                  <span className="text-xs font-bold text-[#35453a] min-w-[50px] text-right">
                     {cals} kcal
                   </span>
                   <button
                     onClick={() => onDeleteLog(log.id)}
-                    className="p-1 text-slate-500 hover:text-rose-400 transition opacity-70 group-hover:opacity-100"
+                    className="p-1 text-[#9ba59b] hover:text-rose-500 transition opacity-70 group-hover:opacity-100"
                     title="Eliminar alimento"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -251,7 +251,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
         <button
           ref={addBtnRef}
           onClick={handleToggleMenu}
-          className="w-full py-2 px-3 rounded-xl border border-dashed border-white/10 hover:border-emerald-500/40 bg-white/2 hover:bg-emerald-500/5 text-xs font-semibold text-slate-300 hover:text-emerald-400 flex items-center justify-center gap-1.5 transition"
+          className="w-full py-2 px-3 rounded-xl border border-dashed border-emerald-900/20 hover:border-emerald-500/60 bg-emerald-50/70 hover:bg-emerald-100 text-xs font-bold text-emerald-800 flex items-center justify-center gap-1.5 transition"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Añadir a {config.label}</span>
@@ -269,7 +269,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
             width: menuPos.width,
             zIndex: 9999,
           }}
-          className="bg-[#0d1117] border border-white/10 rounded-2xl p-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150"
+          className="bg-white border border-emerald-950/10 rounded-2xl p-2 shadow-xl animate-in fade-in zoom-in-95 duration-150"
         >
           <div className="grid grid-cols-2 gap-1.5">
             {[
@@ -281,12 +281,12 @@ export const MealSection: React.FC<MealSectionProps> = ({
               <button
                 key={item.label}
                 onClick={() => { setShowAddMenu(false); item.action(); }}
-                className="flex items-center space-x-2 p-2 rounded-xl bg-slate-900/80 hover:bg-slate-800 text-left transition"
+                className="flex items-center space-x-2 p-2 rounded-xl bg-[#f7f9f4] hover:bg-emerald-50 text-left transition"
               >
                 <div className={`w-7 h-7 rounded-lg flex items-center justify-center ${item.color}`}>{item.icon}</div>
                 <div>
-                  <p className="text-xs font-bold text-white">{item.label}</p>
-                  <p className="text-[10px] text-slate-400">{item.sub}</p>
+                  <p className="text-xs font-bold text-[#35453a]">{item.label}</p>
+                  <p className="text-[10px] text-[#849084]">{item.sub}</p>
                 </div>
               </button>
             ))}
