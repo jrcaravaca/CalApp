@@ -40,6 +40,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [aiResult, setAiResult] = useState<AIParsedMealResponse | null>(null);
   const [editableItems, setEditableItems] = useState<ParsedFoodItem[]>([]);
+  const [editableGrams, setEditableGrams] = useState<string[]>([]);
 
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
@@ -118,6 +119,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
 
       setAiResult(data);
       setEditableItems(data.items || []);
+      setEditableGrams((data.items || []).map((item: ParsedFoodItem) => String(item.serving_grams)));
     } catch (err: any) {
       console.error('AI food error:', err);
       setErrorMsg(err.message || 'Error de conexión con el servicio de IA.');
@@ -126,10 +128,14 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
     }
   };
 
-  const handleItemGramsChange = (index: number, newGrams: number) => {
+  const handleItemGramsChange = (index: number, newGrams: string) => {
+    setEditableGrams((current) => current.map((grams, itemIndex) => itemIndex === index ? newGrams : grams));
+    const parsedGrams = Number(newGrams);
+    if (!newGrams.trim() || !Number.isFinite(parsedGrams) || parsedGrams < 1) return;
+
     const updated = [...editableItems];
     const item = updated[index];
-    const g = Math.max(1, newGrams);
+    const g = parsedGrams;
     item.serving_grams = g;
     item.total_calories = Math.round((item.calories_100g * g) / 100);
     item.total_protein = Math.round(((item.protein_100g * g) / 100) * 10) / 10;
@@ -140,12 +146,13 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
 
   const handleRemoveItem = (index: number) => {
     setEditableItems(editableItems.filter((_, i) => i !== index));
+    setEditableGrams(editableGrams.filter((_, i) => i !== index));
   };
 
   const handleConfirmAddAll = () => {
-    if (editableItems.length === 0) return;
+    if (editableItems.length === 0 || !editableGrams.every((grams) => grams.trim() !== '' && Number.isFinite(Number(grams)) && Number(grams) >= 1)) return;
 
-    const foodsToAdd = editableItems.map((item) => ({
+    const foodsToAdd = editableItems.map((item, index) => ({
       food: {
         id: `ai_${Date.now()}_${Math.random().toString(36).substring(7)}`,
         name: item.name,
@@ -153,9 +160,9 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
         protein_100g: item.protein_100g,
         carbs_100g: item.carbs_100g,
         fat_100g: item.fat_100g,
-        serving_size_g: item.serving_grams,
+        serving_size_g: Number(editableGrams[index]),
       } as FoodItem,
-      grams: item.serving_grams,
+      grams: Number(editableGrams[index]),
     }));
 
     onAddMultipleFoods(selectedMeal, foodsToAdd);
@@ -348,8 +355,8 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                         type="number"
                         min="1"
                         max="2000"
-                        value={item.serving_grams}
-                        onChange={(e) => handleItemGramsChange(idx, Number(e.target.value))}
+                        value={editableGrams[idx] ?? String(item.serving_grams)}
+                        onChange={(e) => handleItemGramsChange(idx, e.target.value)}
                         className="w-16 px-1.5 py-1 bg-slate-800 border border-white/10 rounded-lg text-xs font-bold text-white text-center focus:outline-none focus:border-emerald-500"
                       />
                       <span className="text-xs text-slate-400 font-medium">g</span>
@@ -375,7 +382,8 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                 </button>
                 <button
                   onClick={handleConfirmAddAll}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+                  disabled={editableItems.length === 0 || !editableGrams.every((grams) => grams.trim() !== '' && Number.isFinite(Number(grams)) && Number(grams) >= 1)}
+                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Check className="w-4 h-4" />
                   <span>Añadir Todos a mi Diario</span>

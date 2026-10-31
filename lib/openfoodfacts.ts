@@ -80,29 +80,14 @@ export async function fetchProductByBarcode(barcode: string): Promise<FoodItem |
   }
 }
 
-export async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
+export async function searchOpenFoodFacts(query: string): Promise<FoodItem[] | null> {
   const cleanQuery = query.trim();
   if (!cleanQuery) return [];
 
   try {
-    const params = new URLSearchParams({
-      search_terms: cleanQuery,
-      search_simple: '1',
-      action: 'process',
-      json: '1',
-      page_size: '10',
-      lc: 'es',
-      fields: 'code,product_name,product_name_es,product_name_en,brands,nutriments,serving_quantity,image_front_small_url,image_url',
-    });
-    const url = `https://world.openfoodfacts.org/cgi/search.pl?${params.toString()}`;
+    const res = await fetch(`/api/openfoodfacts/search?q=${encodeURIComponent(cleanQuery)}`);
 
-    const res = await fetch(url, {
-      headers: {
-        'User-Agent': 'FitFreeApp/1.0 (fitfree.app - OpenFoodFacts integration)',
-      },
-    });
-
-    if (!res.ok) return [];
+    if (!res.ok) return null;
 
     const data = await res.json();
     if (!data.products || !Array.isArray(data.products)) return [];
@@ -130,7 +115,7 @@ export async function searchOpenFoodFacts(query: string): Promise<FoodItem[]> {
         };
       });
   } catch (error) {
-    console.error('Error searching Open Food Facts:', error);
-    return [];
+    console.warn('Open Food Facts search unavailable:', error);
+    return null;
   }
 }

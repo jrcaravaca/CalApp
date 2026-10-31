@@ -24,14 +24,7 @@ import {
   deleteLogEntry,
 } from '@/lib/storage';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
-import {
-  ScanBarcode,
-  Sparkles,
-  Scale,
-  Search,
-  CheckCircle2,
-  Zap,
-} from 'lucide-react';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function HomePage() {
   const [currentDate, setCurrentDate] = useState<string>(getTodayDateString());
@@ -59,6 +52,45 @@ export default function HomePage() {
   const [userEmail, setUserEmail] = useState<string | undefined>();
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [tdeeInitialTab, setTdeeInitialTab] = useState<'trainer' | 'calculator'>('trainer');
+  const [streakDays, setStreakDays] = useState<number>(0);
+
+  const computeCurrentStreak = useCallback(() => {
+    if (typeof window === 'undefined') return 0;
+
+    try {
+      const activeDates = new Set<string>();
+      Object.keys(localStorage).forEach((key) => {
+        const match = key.match(/^fitfree_logs(?:_[^_]+)?_(\d{4}-\d{2}-\d{2})$/);
+        if (!match) return;
+
+        const raw = localStorage.getItem(key);
+        if (!raw) return;
+
+        const parsed = JSON.parse(raw);
+        if (Array.isArray(parsed) && parsed.some((entry) => entry && entry.food_item)) {
+          activeDates.add(match[1]);
+        }
+      });
+
+      if (activeDates.size === 0) return 0;
+
+      let streak = 0;
+      const cursor = new Date(currentDate);
+      while (true) {
+        const key = `${cursor.getFullYear()}-${String(cursor.getMonth() + 1).padStart(2, '0')}-${String(
+          cursor.getDate()
+        ).padStart(2, '0')}`;
+
+        if (!activeDates.has(key)) break;
+        streak += 1;
+        cursor.setDate(cursor.getDate() - 1);
+      }
+
+      return streak;
+    } catch {
+      return 0;
+    }
+  }, [currentDate]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -104,7 +136,8 @@ export default function HomePage() {
     setProfile(p);
     const l = await getLogsForDate(currentDate);
     setLogs(l);
-  }, [currentDate]);
+    setStreakDays(computeCurrentStreak());
+  }, [computeCurrentStreak, currentDate]);
 
   useEffect(() => {
     refreshAuth();
@@ -196,6 +229,34 @@ export default function HomePage() {
     }
   };
 
+  const handleCopyPreviousMeal = async (
+    sourceDate: string,
+    sourceMealType: MealType,
+    targetMealType: MealType
+  ) => {
+    try {
+      const sourceLogs = await getLogsForDate(sourceDate);
+      const mealsToCopy = sourceLogs.filter(
+        (log) => log.meal_type === sourceMealType && Boolean(log.food_item)
+      );
+
+      if (mealsToCopy.length === 0) {
+        showToast('No había alimentos para copiar en ese día');
+        return;
+      }
+
+      for (const item of mealsToCopy) {
+        if (!item.food_item) continue;
+        await saveLogEntry(currentDate, targetMealType, item.food_item, item.serving_grams);
+      }
+
+      await refreshData();
+      showToast(`✓ ${mealsToCopy.length} alimentos copiados desde ${sourceDate}`);
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'No se pudo copiar la comida');
+    }
+  };
+
   const handleSaveProfile = async (updated: Profile) => {
     try {
       await saveProfileToStore(updated);
@@ -224,57 +285,20 @@ export default function HomePage() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 max-w-2xl w-full mx-auto px-3.5 pt-4 pb-28 space-y-4">
+      <main className="flex-1 max-w-2xl w-full mx-auto px-3.5 pt-4 pb-6 space-y-4">
         {/* Calorie & Macro Progress Card */}
         <MacroSummaryCard
           profile={profile}
           logs={logs}
+          streakDays={streakDays}
           onOpenTDEE={handleOpenTDEE}
         />
-
-        {/* Quick Action Feature Highlights */}
-        <div className="grid grid-cols-3 gap-2">
-          {/* AI Parser */}
-          <button
-            onClick={() => handleOpenAI()}
-            className="p-3 rounded-2xl bg-white border border-emerald-900/10 hover:border-emerald-500/50 text-left transition group shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
-          >
-            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
-              <Sparkles className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-bold text-[#26352d]">IA Scan</p>
-            <p className="text-[10px] text-[#748276]">Gemini 2.5</p>
-          </button>
-
-          {/* Barcode Scanner */}
-          <button
-            onClick={() => handleOpenScanner()}
-            className="p-3 rounded-2xl bg-white border border-sky-900/10 hover:border-sky-500/50 text-left transition shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
-          >
-            <div className="w-8 h-8 rounded-xl bg-sky-100 text-sky-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
-              <ScanBarcode className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-bold text-[#26352d]">Código</p>
-            <p className="text-[10px] text-[#748276]">Open Food Facts</p>
-          </button>
-
-          {/* Macro Scaler */}
-          <button
-            onClick={() => handleOpenScaler()}
-            className="p-3 rounded-2xl bg-white border border-orange-900/10 hover:border-orange-400/60 text-left transition shadow-[0_8px_24px_rgba(70,100,64,0.08)]"
-          >
-            <div className="w-8 h-8 rounded-xl bg-orange-100 text-orange-700 flex items-center justify-center mb-1.5 group-hover:scale-105 transition">
-              <Scale className="w-4 h-4" />
-            </div>
-            <p className="text-xs font-bold text-[#26352d]">Escalar</p>
-            <p className="text-[10px] text-[#748276]">Ajustar porciones</p>
-          </button>
-        </div>
 
         {/* Meals Sections: Breakfast, Lunch, Dinner, Snack */}
         <div className="space-y-3.5">
           <MealSection
             mealType="breakfast"
+            currentDate={currentDate}
             logs={logs}
             onOpenSearch={handleOpenSearch}
             onOpenScanner={handleOpenScanner}
@@ -282,10 +306,12 @@ export default function HomePage() {
             onOpenScaler={handleOpenScaler}
             onDeleteLog={handleDeleteLog}
             onUpdateServing={handleUpdateServing}
+            onCopyPreviousMeal={handleCopyPreviousMeal}
           />
 
           <MealSection
             mealType="lunch"
+            currentDate={currentDate}
             logs={logs}
             onOpenSearch={handleOpenSearch}
             onOpenScanner={handleOpenScanner}
@@ -293,10 +319,12 @@ export default function HomePage() {
             onOpenScaler={handleOpenScaler}
             onDeleteLog={handleDeleteLog}
             onUpdateServing={handleUpdateServing}
+            onCopyPreviousMeal={handleCopyPreviousMeal}
           />
 
           <MealSection
             mealType="dinner"
+            currentDate={currentDate}
             logs={logs}
             onOpenSearch={handleOpenSearch}
             onOpenScanner={handleOpenScanner}
@@ -304,10 +332,12 @@ export default function HomePage() {
             onOpenScaler={handleOpenScaler}
             onDeleteLog={handleDeleteLog}
             onUpdateServing={handleUpdateServing}
+            onCopyPreviousMeal={handleCopyPreviousMeal}
           />
 
           <MealSection
             mealType="snack"
+            currentDate={currentDate}
             logs={logs}
             onOpenSearch={handleOpenSearch}
             onOpenScanner={handleOpenScanner}
@@ -315,9 +345,14 @@ export default function HomePage() {
             onOpenScaler={handleOpenScaler}
             onDeleteLog={handleDeleteLog}
             onUpdateServing={handleUpdateServing}
+            onCopyPreviousMeal={handleCopyPreviousMeal}
           />
         </div>
       </main>
+
+      <footer className="w-full max-w-2xl mx-auto px-4 pt-1 pb-[calc(1rem+env(safe-area-inset-bottom))] text-left text-[10px] leading-5 text-[#849087]">
+        Artificially made by JRamonCP
+      </footer>
 
       {/* Interactive Modals */}
       <BarcodeScannerModal
@@ -381,7 +416,7 @@ export default function HomePage() {
 
       {/* Global Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-20 left-1/2 -translate-x-1/2 z-50 glass-panel bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-xs font-semibold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 glass-panel bg-slate-900/95 border border-emerald-500/40 text-emerald-300 text-xs font-semibold px-4 py-2.5 rounded-full shadow-2xl flex items-center gap-2 animate-in fade-in slide-in-from-bottom-3 duration-200">
           <CheckCircle2 className="w-4 h-4 text-emerald-400" />
           <span>{toastMessage}</span>
         </div>

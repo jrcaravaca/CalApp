@@ -36,7 +36,7 @@ export const BarcodeScannerModal: React.FC<Props> = ({
   const [cameraError, setCameraError] = useState<string | null>(null);
   const [lookingUp, setLookingUp] = useState(false);
   const [product, setProduct] = useState<FoodItem | null>(null);
-  const [grams, setGrams] = useState(100);
+  const [grams, setGrams] = useState('100');
   const [meal, setMeal] = useState<MealType>(defaultMealType);
   const [useFront, setUseFront] = useState(false);
   const [statusMsg, setStatusMsg] = useState('Iniciando cámara...');
@@ -168,7 +168,7 @@ export const BarcodeScannerModal: React.FC<Props> = ({
 
     if (found) {
       setProduct(found);
-      setGrams(found.serving_size_g || 100);
+      setGrams(String(found.serving_size_g || 100));
     } else {
       setCameraError(`Código "${barcode}" no encontrado en Open Food Facts.`);
       detectedRef.current = false;
@@ -189,7 +189,7 @@ export const BarcodeScannerModal: React.FC<Props> = ({
     setLookingUp(false);
     if (found) {
       setProduct(found);
-      setGrams(found.serving_size_g || 100);
+      setGrams(String(found.serving_size_g || 100));
     } else {
       setCameraError(`Código "${target}" no encontrado en Open Food Facts.`);
       detectedRef.current = false;
@@ -197,8 +197,9 @@ export const BarcodeScannerModal: React.FC<Props> = ({
   };
 
   const handleConfirmAdd = () => {
-    if (!product) return;
-    onAddFood(meal, product, Math.max(1, grams));
+    const servingGrams = Number(grams);
+    if (!product || !Number.isFinite(servingGrams) || servingGrams < 1) return;
+    onAddFood(meal, product, servingGrams);
     setProduct(null);
     detectedRef.current = false;
     onClose();
@@ -318,24 +319,24 @@ export const BarcodeScannerModal: React.FC<Props> = ({
                   <label className="text-xs font-bold text-slate-300 block mb-1.5">Cantidad:</label>
                   <div className="flex items-center gap-2">
                     <input type="number" min="1" max="2000" value={grams}
-                      onChange={(e) => setGrams(Number(e.target.value))}
+                      onChange={(e) => setGrams(e.target.value)}
                       className="flex-1 px-3 py-2.5 bg-slate-800 border border-white/10 rounded-xl text-lg font-bold text-white text-center focus:outline-none focus:border-emerald-500" />
                     <span className="text-sm font-semibold text-slate-400">g</span>
                   </div>
                   <div className="flex gap-1.5 mt-2">
                     {[50, 100, 150, 200, 250].map((g) => (
-                      <button key={g} onClick={() => setGrams(g)}
+                      <button key={g} onClick={() => setGrams(String(g))}
                         className={`flex-1 text-[11px] font-bold py-1 rounded-lg border transition ${
-                          grams === g ? 'bg-emerald-500 text-slate-950 border-emerald-500' : 'bg-white/5 text-slate-300 border-white/5'
+                          Number(grams) === g ? 'bg-emerald-500 text-slate-950 border-emerald-500' : 'bg-white/5 text-slate-300 border-white/5'
                         }`}>{g}</button>
                     ))}
                   </div>
                 </div>
                 <div className="p-2.5 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex justify-between text-xs font-bold">
-                  <span className="text-emerald-400">Total {grams}g:</span>
+                  <span className="text-emerald-400">Total {grams || 0}g:</span>
                   <div className="flex gap-2">
-                    <span className="text-white">{Math.round((product.calories_100g * grams) / 100)} kcal</span>
-                    <span className="text-rose-400">{Math.round(((product.protein_100g * grams) / 100) * 10) / 10}g P</span>
+                    <span className="text-white">{Math.round((product.calories_100g * (Number(grams) || 0)) / 100)} kcal</span>
+                    <span className="text-rose-400">{Math.round(((product.protein_100g * (Number(grams) || 0)) / 100) * 10) / 10}g P</span>
                   </div>
                 </div>
               </div>
@@ -347,7 +348,8 @@ export const BarcodeScannerModal: React.FC<Props> = ({
                   ← Volver
                 </button>
                 <button onClick={handleConfirmAdd}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20">
+                  disabled={!grams.trim() || !Number.isFinite(Number(grams)) || Number(grams) < 1}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 disabled:opacity-40 disabled:cursor-not-allowed">
                   <Check className="w-4 h-4" /> Añadir a mi Diario
                 </button>
               </div>

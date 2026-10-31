@@ -10,18 +10,21 @@ import {
   TrendingUp,
   Edit3,
   ClipboardList,
+  Target,
 } from 'lucide-react';
 import { Profile, DailyLog } from '@/lib/types';
 
 interface MacroSummaryCardProps {
   profile: Profile;
   logs: DailyLog[];
+  streakDays: number;
   onOpenTDEE: (initialTab?: 'trainer' | 'calculator') => void;
 }
 
 export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
   profile,
   logs,
+  streakDays,
   onOpenTDEE,
 }) => {
   // Aggregate daily consumed macros
@@ -71,7 +74,7 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
       {/* Background radial glow */}
       <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-lime-400 via-emerald-400 to-orange-300 pointer-events-none" />
 
-      {/* Top Title & Quick Action Buttons */}
+      {/* Top Title & single objective action */}
       <div className="flex items-center justify-between mb-4 flex-wrap gap-2">
         <div className="flex items-center space-x-2">
           <div className="w-2.5 h-2.5 rounded-full bg-emerald-500" />
@@ -80,25 +83,19 @@ export const MacroSummaryCard: React.FC<MacroSummaryCardProps> = ({
           </h2>
         </div>
 
-        {/* Buttons to edit goals */}
-        <div className="flex items-center space-x-1.5">
-          {/* Direct Coach Preset Button */}
+        <div className="flex items-center gap-2">
+          <div className="inline-flex items-center gap-1.5 px-2 py-1 rounded-full bg-orange-50 border border-orange-200 text-[11px] font-bold text-orange-700">
+            <Flame className="w-3.5 h-3.5 text-orange-500" />
+            <span>Racha {streakDays}d</span>
+          </div>
+
           <button
             onClick={() => onOpenTDEE('trainer')}
             className="text-xs font-bold px-3 py-1.5 rounded-full bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-200 flex items-center gap-1.5 shadow-sm transition group"
-            title="Ajustar las calorías y gramos pautados por tu entrenador"
+            title="Ajustar la pauta y la calculadora TDEE en un solo lugar"
           >
-            <Dumbbell className="w-3.5 h-3.5 text-emerald-700 group-hover:scale-110 transition" />
-            <span>Pauta de Entrenador</span>
-          </button>
-
-          {/* Calculator */}
-          <button
-            onClick={() => onOpenTDEE('calculator')}
-            className="text-xs font-semibold px-2.5 py-1.5 rounded-full bg-white hover:bg-orange-50 text-[#68766b] hover:text-orange-800 border border-emerald-950/10 transition"
-            title="Calcular TDEE con fórmula Mifflin-St Jeor"
-          >
-            <span>TDEE</span>
+            <Target className="w-3.5 h-3.5 text-emerald-700 group-hover:scale-110 transition" />
+            <span>Objetivo</span>
           </button>
         </div>
       </div>
