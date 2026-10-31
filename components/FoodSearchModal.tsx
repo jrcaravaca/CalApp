@@ -158,9 +158,9 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center sm:p-3 bg-[#23342b]/35 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg bg-[#fffefa] border border-emerald-950/10 rounded-t-3xl sm:rounded-3xl overflow-hidden shadow-[0_24px_80px_rgba(30,50,36,0.22)] flex flex-col max-h-[92dvh] min-h-0">
-        <div className="flex items-center justify-between p-4 border-b border-emerald-950/5 shrink-0">
+    <div className="fixed inset-0 z-50 flex items-start sm:items-center justify-center sm:p-3 bg-[#fffefa] sm:bg-[#23342b]/35 sm:backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full h-[100dvh] max-w-lg bg-[#fffefa] border-0 sm:border sm:border-emerald-950/10 rounded-none sm:rounded-3xl overflow-hidden shadow-none sm:shadow-[0_24px_80px_rgba(30,50,36,0.22)] flex flex-col max-h-[100dvh] min-h-0 sm:h-auto sm:max-h-[92dvh]">
+        <div className="flex items-center justify-between px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-4 border-b border-emerald-950/5 shrink-0 sm:pt-4">
           <div className="flex items-center space-x-2">
             <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-800 flex items-center justify-center">
               <Search className="w-4 h-4" />
@@ -180,7 +180,7 @@ export const FoodSearchModal: React.FC<FoodSearchModalProps> = ({
         </div>
 
         {!selectedFood && !isCreatingCustom && (
-          <div className="sticky top-0 z-20 p-3 bg-[#f4f7ef] border-b border-emerald-950/5 space-y-2 shrink-0 backdrop-blur-sm">
+          <div className="z-20 p-3 bg-[#f4f7ef] border-b border-emerald-950/5 space-y-2 shrink-0">
             <div className="relative">
               <input
                 type="text"

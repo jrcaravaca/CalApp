@@ -374,13 +374,13 @@ export const MealSection: React.FC<MealSectionProps> = ({
         )}
       </div>
 
-      <div className="flex items-center gap-2">
+      <div className="flex flex-col gap-2">
         <button
           onClick={async () => {
             await loadPreviousMeals();
             setShowAddMenu(false);
           }}
-          className="flex-1 py-2 px-3 rounded-xl border border-emerald-200 bg-white text-[11px] font-bold text-emerald-800 hover:bg-emerald-50 transition flex items-center justify-center gap-1.5"
+          className="w-full py-2 px-3 rounded-xl border border-emerald-200 bg-white text-[11px] font-bold text-emerald-800 hover:bg-emerald-50 transition flex items-center justify-center gap-1.5"
         >
           <History className="w-3.5 h-3.5" />
           {isLoadingHistory ? 'Cargando…' : 'Copiar comida anterior'}
@@ -388,7 +388,7 @@ export const MealSection: React.FC<MealSectionProps> = ({
         <button
           ref={addBtnRef}
           onClick={handleToggleMenu}
-          className="flex-1 py-2 px-3 rounded-xl border border-dashed border-emerald-900/20 hover:border-emerald-500/60 bg-emerald-50/70 hover:bg-emerald-100 text-xs font-bold text-emerald-800 flex items-center justify-center gap-1.5 transition"
+          className="w-full py-2 px-3 rounded-xl border border-dashed border-emerald-900/20 hover:border-emerald-500/60 bg-emerald-50/70 hover:bg-emerald-100 text-xs font-bold text-emerald-800 flex items-center justify-center gap-1.5 transition"
         >
           <Plus className="w-3.5 h-3.5" />
           <span>Añadir a {config.label}</span>
