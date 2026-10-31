@@ -188,27 +188,27 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
   ) / 10;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-black/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-lg glass-panel bg-[#0B0F19] border border-white/10 rounded-3xl overflow-hidden shadow-2xl flex flex-col max-h-[92vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 bg-[#23342b]/35 backdrop-blur-sm animate-in fade-in duration-200">
+      <div className="relative w-full max-w-lg bg-[#fffefa] border border-emerald-950/10 rounded-3xl overflow-hidden shadow-[0_24px_80px_rgba(30,50,36,0.22)] flex flex-col max-h-[92dvh]">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-white/5">
+        <div className="flex items-center justify-between p-4 border-b border-emerald-950/5">
           <div className="flex items-center space-x-2">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-400 text-slate-950 flex items-center justify-center font-bold">
+            <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
-              <h2 className="text-base font-bold text-white flex items-center gap-1.5">
+              <h2 className="text-base font-bold text-[#2d3d31] flex items-center gap-1.5">
                 <span>IA Meal Scanner</span>
-                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200">
                   Gemini 2.5 Flash
                 </span>
               </h2>
-              <p className="text-[11px] text-slate-400">Reconocimiento nutricional automático</p>
+              <p className="text-[11px] text-[#7b887c]">Reconocimiento nutricional automático</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-slate-400 hover:text-white hover:bg-white/10 transition"
+            className="p-1.5 rounded-full text-[#839084] hover:text-[#35453a] hover:bg-emerald-50 transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -216,7 +216,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
 
         {/* Mode Selector Tabs (only before parsing) */}
         {!aiResult && (
-          <div className="flex p-2 bg-slate-900/50 border-b border-white/5">
+          <div className="flex p-2 bg-[#f4f7ef] border-b border-emerald-950/5">
             <button
               onClick={() => {
                 setMode('text');
@@ -225,7 +225,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               className={`flex-1 py-1.5 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition ${
                 mode === 'text'
                   ? 'bg-emerald-500 text-slate-950 shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#6f7c70] hover:text-[#2d3d31]'
               }`}
             >
               <Type className="w-3.5 h-3.5" />
@@ -239,7 +239,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               className={`flex-1 py-1.5 text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5 transition ${
                 mode === 'photo'
                   ? 'bg-emerald-500 text-slate-950 shadow-md'
-                  : 'text-slate-400 hover:text-white'
+                  : 'text-[#6f7c70] hover:text-[#2d3d31]'
               }`}
             >
               <Camera className="w-3.5 h-3.5" />
@@ -248,8 +248,8 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
           </div>
         )}
 
-        <div className="px-4 py-2.5 border-b border-white/5">
-          <label className="text-[11px] font-semibold text-slate-400 block mb-1.5">Guardar en comida:</label>
+        <div className="px-4 py-2.5 border-b border-emerald-950/5">
+          <label className="text-[11px] font-semibold text-[#6f7c70] block mb-1.5">Guardar en comida:</label>
           <div className="grid grid-cols-4 gap-1.5">
             {(['breakfast', 'lunch', 'dinner', 'snack'] as MealType[]).map((mealType) => {
               const labels: Record<MealType, string> = {
@@ -263,7 +263,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                   className={`py-1.5 px-1 text-[11px] font-semibold rounded-lg border text-center transition ${
                     selectedMeal === mealType
                       ? 'bg-emerald-500 text-slate-950 border-emerald-500'
-                      : 'bg-white/5 text-slate-400 border-white/5 hover:text-white'
+                      : 'bg-white text-[#657367] border-emerald-100 hover:text-emerald-900'
                   }`}>{labels[mealType]}</button>
               );
             })}
@@ -275,33 +275,33 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
           {isLoading ? (
             <div className="flex flex-col items-center justify-center py-12 space-y-3">
               <div className="relative">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-500 to-teal-400 flex items-center justify-center text-slate-950 animate-pulse">
+                <div className="w-14 h-14 rounded-2xl bg-emerald-100 flex items-center justify-center text-emerald-700 animate-pulse">
                   <Bot className="w-7 h-7" />
                 </div>
                 <div className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 animate-ping" />
               </div>
-              <p className="text-sm font-bold text-white">Gemini está analizando tu comida...</p>
-              <p className="text-xs text-slate-400 text-center max-w-xs">
+              <p className="text-sm font-bold text-[#2d3d31]">Gemini está analizando tu comida...</p>
+              <p className="text-xs text-[#738076] text-center max-w-xs">
                 Desglosando ingredientes, estimando gramos y calculando macronutrientes precisos.
               </p>
             </div>
           ) : aiResult ? (
             /* Analysis Results Screen */
             <div className="space-y-4 animate-in fade-in zoom-in-95 duration-200">
-              <div className="p-3.5 rounded-2xl bg-slate-900 border border-emerald-500/30">
+              <div className="p-3.5 rounded-2xl bg-[#f4f7ef] border border-emerald-200">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-400">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700">
                     Plato Identificado
                   </span>
-                  <span className="text-xs font-bold text-white">
+                  <span className="text-xs font-bold text-[#657367]">
                     {editableItems.length} ingredientes
                   </span>
                 </div>
-                <h3 className="text-base font-extrabold text-white mt-0.5">
+                <h3 className="text-base font-extrabold text-[#2d3d31] mt-0.5">
                   {aiResult.meal_name || 'Comida Analizada'}
                 </h3>
                 {aiResult.analysis_notes && (
-                  <p className="text-xs text-slate-400 mt-1 italic">
+                  <p className="text-xs text-[#6f7c70] mt-1 italic">
                     💡 {aiResult.analysis_notes}
                   </p>
                 )}
@@ -310,42 +310,42 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               {/* Live Totals Banner */}
               <div className="grid grid-cols-4 gap-2 text-center p-3 rounded-2xl bg-emerald-500/10 border border-emerald-500/20">
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400">Calorías</p>
-                  <p className="text-base font-extrabold text-white">{currentTotalCalories} kcal</p>
+                  <p className="text-[10px] font-bold text-[#6f7c70]">Calorías</p>
+                  <p className="text-base font-extrabold text-[#2d3d31]">{currentTotalCalories} kcal</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400">Proteína</p>
-                  <p className="text-base font-extrabold text-rose-400">{currentTotalProtein}g</p>
+                  <p className="text-[10px] font-bold text-[#6f7c70]">Proteína</p>
+                  <p className="text-base font-extrabold text-rose-600">{currentTotalProtein}g</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400">Carbos</p>
-                  <p className="text-base font-extrabold text-sky-400">{currentTotalCarbs}g</p>
+                  <p className="text-[10px] font-bold text-[#6f7c70]">Carbos</p>
+                  <p className="text-base font-extrabold text-sky-600">{currentTotalCarbs}g</p>
                 </div>
                 <div>
-                  <p className="text-[10px] font-bold text-slate-400">Grasas</p>
-                  <p className="text-base font-extrabold text-amber-400">{currentTotalFat}g</p>
+                  <p className="text-[10px] font-bold text-[#6f7c70]">Grasas</p>
+                  <p className="text-base font-extrabold text-amber-600">{currentTotalFat}g</p>
                 </div>
               </div>
 
               {/* Editable Ingredients Table */}
               <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-300">
+                <p className="text-xs font-bold text-[#526156]">
                   Ingredientes reconocidos (ajusta los gramos si es necesario):
                 </p>
                 {editableItems.map((item, idx) => (
                   <div
                     key={idx}
-                    className="p-2.5 rounded-xl bg-slate-900/70 border border-white/5 flex items-center justify-between gap-2"
+                    className="p-2.5 rounded-xl bg-white border border-emerald-950/5 flex items-center justify-between gap-2"
                   >
                     <div className="flex-1 min-w-0">
-                      <p className="text-xs font-bold text-slate-200 truncate">{item.name}</p>
-                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400 mt-0.5">
-                        <span className="text-rose-400 font-semibold">{item.total_protein}g P</span>
+                      <p className="text-xs font-bold text-[#2d3d31] truncate">{item.name}</p>
+                      <div className="flex items-center gap-1.5 text-[10px] text-[#6f7c70] mt-0.5">
+                        <span className="text-rose-600 font-semibold">{item.total_protein}g P</span>
                         <span>•</span>
-                        <span className="text-sky-400 font-semibold">{item.total_carbs}g C</span>
+                        <span className="text-sky-600 font-semibold">{item.total_carbs}g C</span>
                         <span>•</span>
-                        <span className="text-amber-400 font-semibold">{item.total_fat}g F</span>
-                        {item.notes && <span className="text-slate-500 hidden sm:inline">({item.notes})</span>}
+                        <span className="text-amber-600 font-semibold">{item.total_fat}g F</span>
+                        {item.notes && <span className="text-[#849084] hidden sm:inline">({item.notes})</span>}
                       </div>
                     </div>
 
@@ -357,12 +357,12 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                         max="2000"
                         value={editableGrams[idx] ?? String(item.serving_grams)}
                         onChange={(e) => handleItemGramsChange(idx, e.target.value)}
-                        className="w-16 px-1.5 py-1 bg-slate-800 border border-white/10 rounded-lg text-xs font-bold text-white text-center focus:outline-none focus:border-emerald-500"
+                        className="w-16 px-1.5 py-1 bg-[#f8faf6] border border-emerald-950/10 rounded-lg text-xs font-bold text-[#35453a] text-center focus:outline-none focus:border-emerald-500"
                       />
-                      <span className="text-xs text-slate-400 font-medium">g</span>
+                      <span className="text-xs text-[#7b887c] font-medium">g</span>
                       <button
                         onClick={() => handleRemoveItem(idx)}
-                        className="p-1 text-slate-500 hover:text-rose-400 transition"
+                        className="p-1 text-[#9aa59d] hover:text-rose-500 transition"
                         title="Quitar ingrediente"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
@@ -376,14 +376,14 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               <div className="flex space-x-2 pt-2">
                 <button
                   onClick={() => setAiResult(null)}
-                  className="px-4 py-2.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs font-semibold text-slate-300 transition"
+                  className="px-4 py-2.5 rounded-xl bg-[#f1f5ed] hover:bg-emerald-100 text-xs font-semibold text-[#657367] transition"
                 >
                   Volver a intentar
                 </button>
                 <button
                   onClick={handleConfirmAddAll}
                   disabled={editableItems.length === 0 || !editableGrams.every((grams) => grams.trim() !== '' && Number.isFinite(Number(grams)) && Number(grams) >= 1)}
-                  className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-emerald-500 to-teal-400 text-slate-950 text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="flex-1 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-extrabold flex items-center justify-center gap-1.5 shadow-lg shadow-emerald-900/10 transition disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <Check className="w-4 h-4" />
                   <span>Añadir Todos a mi Diario</span>
@@ -394,7 +394,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
             /* Text Mode Input */
             <div className="space-y-4">
               <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-1.5">
+                <label className="text-xs font-semibold text-[#526156] block mb-1.5">
                   Escribe lo que comiste (en lenguaje natural):
                 </label>
                 <textarea
@@ -402,13 +402,13 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                   placeholder="Ej: 2 huevos fritos, 2 rebanadas de pan tostado con 10g de mantequilla y un vaso de zumo de naranja recién exprimido..."
                   value={textPrompt}
                   onChange={(e) => setTextPrompt(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-slate-900 border border-white/10 rounded-2xl text-xs text-white placeholder-slate-500 focus:outline-none focus:border-emerald-500 leading-relaxed resize-none"
+                  className="w-full px-3 py-2.5 bg-white border border-emerald-950/10 rounded-2xl text-xs text-[#35453a] placeholder:text-[#9aa59d] focus:outline-none focus:border-emerald-500 leading-relaxed resize-none"
                 />
               </div>
 
               {/* Sample Quick Prompts */}
               <div className="space-y-2">
-                <p className="text-xs font-bold text-slate-400 flex items-center gap-1">
+                <p className="text-xs font-bold text-[#657367] flex items-center gap-1">
                   <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
                   Ejemplos rápidos para probar:
                 </p>
@@ -420,10 +420,10 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                         setTextPrompt(s);
                         handleAnalyze(s);
                       }}
-                      className="w-full text-left p-2 rounded-xl bg-white/5 hover:bg-emerald-500/10 hover:border-emerald-500/30 border border-white/5 text-[11px] text-slate-300 transition flex items-center justify-between group"
+                      className="w-full text-left p-2 rounded-xl bg-white hover:bg-emerald-50 hover:border-emerald-300 border border-emerald-950/5 text-[11px] text-[#526156] transition flex items-center justify-between group"
                     >
                       <span className="truncate pr-2">{s}</span>
-                      <Sparkles className="w-3 h-3 text-emerald-400 opacity-60 group-hover:opacity-100 shrink-0" />
+                      <Sparkles className="w-3 h-3 text-emerald-600 opacity-60 group-hover:opacity-100 shrink-0" />
                     </button>
                   ))}
                 </div>
@@ -433,7 +433,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               <button
                 onClick={() => handleAnalyze()}
                 disabled={!textPrompt.trim()}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 disabled:opacity-50 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+                className="w-full py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 transition"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Analizar con Gemini AI</span>
@@ -452,7 +452,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               />
 
               {imageBase64 ? (
-                <div className="relative rounded-2xl overflow-hidden border border-emerald-500/30 max-h-[260px] flex items-center justify-center bg-black">
+                <div className="relative rounded-2xl overflow-hidden border border-emerald-200 max-h-[260px] flex items-center justify-center bg-[#23342b]">
                   <img
                     src={imageBase64}
                     alt="Foto de la comida"
@@ -460,7 +460,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
                   />
                   <button
                     onClick={() => setImageBase64(null)}
-                    className="absolute top-2 right-2 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition"
+                    className="absolute top-2 right-2 p-1.5 rounded-full bg-[#23342b]/80 text-white hover:bg-[#23342b] transition"
                   >
                     <X className="w-4 h-4" />
                   </button>
@@ -468,13 +468,13 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               ) : (
                 <div
                   onClick={() => fileInputRef.current?.click()}
-                  className="border-2 border-dashed border-white/10 hover:border-emerald-500/40 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-slate-900/40 hover:bg-slate-900/80 transition"
+                  className="border-2 border-dashed border-emerald-200 hover:border-emerald-400 rounded-2xl p-8 flex flex-col items-center justify-center text-center cursor-pointer bg-emerald-50/60 hover:bg-emerald-50 transition"
                 >
-                  <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center mb-3">
+                  <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center mb-3">
                     <Camera className="w-6 h-6" />
                   </div>
-                  <p className="text-xs font-bold text-white">Toma una foto o sube una imagen</p>
-                  <p className="text-[10px] text-slate-400 mt-1">
+                  <p className="text-xs font-bold text-[#2d3d31]">Toma una foto o sube una imagen</p>
+                  <p className="text-[10px] text-[#738076] mt-1">
                     Gemini identificará cada alimento y calculará las porciones
                   </p>
                 </div>
@@ -484,7 +484,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
               <button
                 onClick={() => handleAnalyze()}
                 disabled={!imageBase64}
-                className="w-full py-3 rounded-2xl bg-gradient-to-r from-emerald-500 via-teal-400 to-emerald-300 disabled:opacity-50 text-slate-950 font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 hover:opacity-95 transition"
+                className="w-full py-3 rounded-2xl bg-emerald-700 hover:bg-emerald-800 disabled:opacity-50 text-white font-extrabold text-xs flex items-center justify-center gap-2 shadow-lg shadow-emerald-900/10 transition"
               >
                 <Sparkles className="w-4 h-4" />
                 <span>Analizar Foto del Plato</span>
@@ -493,7 +493,7 @@ export const AIFoodModal: React.FC<AIFoodModalProps> = ({
           )}
 
           {errorMsg && (
-            <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/20 text-rose-300 text-xs flex items-center gap-2">
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
               <AlertCircle className="w-4 h-4 shrink-0" />
               <span>{errorMsg}</span>
             </div>
