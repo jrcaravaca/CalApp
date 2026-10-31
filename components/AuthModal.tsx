@@ -77,6 +77,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
       }
 
       if (data.session) {
+        localStorage.removeItem('fitfree_local_user');
         const { error: sessionError } = await supabase.auth.setSession({
           access_token: data.session.access_token,
           refresh_token: data.session.refresh_token,
@@ -297,7 +298,7 @@ export const AuthModal: React.FC<AuthModalProps> = ({
                   <div className="p-4 rounded-2xl bg-amber-50 border border-amber-200 text-sm text-amber-950">
                     <p className="font-bold flex items-center gap-2"><AlertCircle className="w-4 h-4" />Sincronización no configurada</p>
                     <p className="text-xs leading-relaxed mt-2">{supabaseConfigurationIssue}</p>
-                    <p className="text-xs leading-relaxed mt-2">En tu archivo de entorno, configura NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY con la clave pública del proyecto y reinicia la app. No uses una clave secreta ni service_role en el navegador.</p>
+                    <p className="text-xs leading-relaxed mt-2">En tu archivo de entorno o Netlify, configura NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY (o NEXT_PUBLIC_SUPABASE_ANON_KEY) con la clave pública del proyecto y reinicia la app. No uses una clave secreta ni service_role en el navegador.</p>
                   </div>
                 ) : (
                 <form

@@ -11,7 +11,9 @@ function getSupabaseClient() {
   const publicKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
   if (!cleanUrl || !isSafePublicSupabaseKey(publicKey)) return null;
-  return createClient(cleanUrl, publicKey);
+  return createClient(cleanUrl, publicKey, {
+    auth: { persistSession: false },
+  });
 }
 
 export async function POST(req: NextRequest) {

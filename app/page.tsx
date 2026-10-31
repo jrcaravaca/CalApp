@@ -73,12 +73,10 @@ export default function HomePage() {
         if (data?.user) {
           setIsAuthenticated(true);
           setUserEmail(data.user.email);
-        } else {
-          setIsAuthenticated(false);
-          setUserEmail(undefined);
+          return;
         }
       } catch (_) {
-        setIsAuthenticated(false);
+        // Fallback to local user
       }
     }
 
@@ -111,6 +109,16 @@ export default function HomePage() {
   useEffect(() => {
     refreshAuth();
     refreshData();
+
+    if (isSupabaseConfigured) {
+      const { data: authListener } = supabase.auth.onAuthStateChange(() => {
+        refreshAuth();
+        refreshData();
+      });
+      return () => {
+        authListener.subscription.unsubscribe();
+      };
+    }
   }, [refreshAuth, refreshData]);
 
   // Handlers for modals
@@ -189,9 +197,13 @@ export default function HomePage() {
   };
 
   const handleSaveProfile = async (updated: Profile) => {
-    await saveProfileToStore(updated);
-    setProfile(updated);
-    showToast('Metas y macros actualizados');
+    try {
+      await saveProfileToStore(updated);
+      setProfile(updated);
+      showToast('Metas y macros actualizados');
+    } catch (error) {
+      showToast(error instanceof Error ? error.message : 'Error al guardar metas');
+    }
   };
 
   return (

@@ -337,11 +337,36 @@ export async function loadProfile(): Promise<Profile> {
           .from('profiles')
           .select('*')
           .eq('id', authData.user.id)
-          .single();
+          .maybeSingle();
 
         if (data && !error) {
           localStorage.setItem('fitfree_profile', JSON.stringify(data));
           return data as Profile;
+        }
+
+        // If user profile row does not exist in Supabase yet, create it from local cache or default
+        if (!data && (!error || (error as any).code === 'PGRST116')) {
+          const stored = localStorage.getItem('fitfree_profile');
+          let base = DEFAULT_PROFILE;
+          if (stored) {
+            try {
+              base = JSON.parse(stored);
+            } catch (_) {}
+          }
+          const initialProfile: Profile = {
+            ...base,
+            id: authData.user.id,
+            updated_at: new Date().toISOString(),
+          };
+          const { data: created, error: createError } = await supabase
+            .from('profiles')
+            .upsert(initialProfile)
+            .select()
+            .single();
+          if (created && !createError) {
+            localStorage.setItem('fitfree_profile', JSON.stringify(created));
+            return created as Profile;
+          }
         }
       }
     } catch (e) {
@@ -367,12 +392,18 @@ export async function saveProfileToStore(profile: Profile): Promise<void> {
     try {
       const { data: authData } = await supabase.auth.getUser();
       if (authData?.user) {
-        await supabase
+        const toSave = { ...profile, id: authData.user.id, updated_at: new Date().toISOString() };
+        const { error } = await supabase
           .from('profiles')
-          .upsert({ ...profile, id: authData.user.id, updated_at: new Date().toISOString() });
+          .upsert(toSave);
+        if (error) {
+          console.warn('Failed to sync profile to Supabase:', error.message);
+          throw new Error(`Error al sincronizar perfil con Supabase: ${error.message}`);
+        }
       }
     } catch (e) {
       console.warn('Failed to sync profile to Supabase:', e);
+      throw e;
     }
   }
 }
@@ -432,18 +463,37 @@ async function getAuthenticatedUserId(): Promise<string | null> {
   return data.user?.id || null;
 }
 
-function readCachedLogs(date: string): DailyLog[] {
+function getLogsCacheKey(date: string, userId?: string | null): string {
+  return userId ? `fitfree_logs_${userId}_${date}` : `fitfree_logs_guest_${date}`;
+}
+
+function readCachedLogs(date: string, userId?: string | null): DailyLog[] {
   if (typeof window === 'undefined') return [];
   try {
-    return JSON.parse(localStorage.getItem(`fitfree_logs_${date}`) || '[]') as DailyLog[];
+    const key = getLogsCacheKey(date, userId);
+    const stored = localStorage.getItem(key);
+    if (stored) return JSON.parse(stored) as DailyLog[];
+
+    // Fallback to legacy key for backward compatibility
+    const legacy = localStorage.getItem(`fitfree_logs_${date}`);
+    if (legacy) {
+      const parsed = JSON.parse(legacy) as DailyLog[];
+      if (!userId) {
+        return parsed.filter((l) => l.user_id === 'guest_user' || !isUuid(l.user_id));
+      } else {
+        return parsed.filter((l) => l.user_id === userId);
+      }
+    }
+    return [];
   } catch (_) {
     return [];
   }
 }
 
-function writeCachedLogs(date: string, logs: DailyLog[]): void {
+function writeCachedLogs(date: string, logs: DailyLog[], userId?: string | null): void {
   if (typeof window !== 'undefined') {
-    localStorage.setItem(`fitfree_logs_${date}`, JSON.stringify(logs));
+    const key = getLogsCacheKey(date, userId);
+    localStorage.setItem(key, JSON.stringify(logs));
   }
 }
 
@@ -480,6 +530,9 @@ export async function saveFoodItemToStore(item: FoodItem): Promise<FoodItem> {
       throw new Error(`No se pudo guardar el alimento en Supabase: ${result.error?.message || 'sin respuesta'}`);
     }
     storedItem = { ...item, ...result.data } as FoodItem;
+    if (!isUuid(storedItem.id)) {
+      throw new Error(`El alimento guardado no tiene un identificador UUID válido: ${storedItem.id}`);
+    }
   }
 
   const foods = await getFoodItems();
@@ -498,8 +551,8 @@ export async function saveFoodItemToStore(item: FoodItem): Promise<FoodItem> {
 }
 
 export async function getLogsForDate(date: string): Promise<DailyLog[]> {
-  const localLogs = readCachedLogs(date);
   const userId = await getAuthenticatedUserId();
+  const localLogs = readCachedLogs(date, userId);
   if (!userId) return localLogs;
 
   const { data, error } = await supabase
@@ -514,7 +567,7 @@ export async function getLogsForDate(date: string): Promise<DailyLog[]> {
   }
 
   const logs = (data || []) as DailyLog[];
-  writeCachedLogs(date, logs);
+  writeCachedLogs(date, logs, userId);
   return logs;
 }
 
@@ -528,6 +581,9 @@ export async function saveLogEntry(
   const storedFood = await saveFoodItemToStore(food);
 
   if (userId) {
+    if (!isUuid(storedFood.id)) {
+      throw new Error(`El alimento "${storedFood.name}" no tiene un identificador UUID válido para Supabase.`);
+    }
     const { data, error } = await supabase
       .from('daily_logs')
       .insert({ user_id: userId, date, meal_type, food_id: storedFood.id, serving_grams })
@@ -537,7 +593,7 @@ export async function saveLogEntry(
       throw new Error(`No se pudo guardar el registro: ${error?.message || 'sin respuesta'}`);
     }
     const savedLog = data as DailyLog;
-    writeCachedLogs(date, [...readCachedLogs(date), savedLog]);
+    writeCachedLogs(date, [...readCachedLogs(date, userId), savedLog], userId);
     return savedLog;
   }
 
@@ -550,7 +606,7 @@ export async function saveLogEntry(
     serving_grams,
     food_item: storedFood,
   };
-  writeCachedLogs(date, [...readCachedLogs(date), newLog]);
+  writeCachedLogs(date, [...readCachedLogs(date, null), newLog], null);
   return newLog;
 }
 
@@ -560,7 +616,7 @@ export async function updateLogServing(
   newGrams: number
 ): Promise<void> {
   const userId = await getAuthenticatedUserId();
-  if (userId) {
+  if (userId && isUuid(logId)) {
     const { error } = await supabase
       .from('daily_logs')
       .update({ serving_grams: newGrams })
@@ -568,14 +624,18 @@ export async function updateLogServing(
       .eq('user_id', userId);
     if (error) throw new Error(`No se pudo actualizar el registro: ${error.message}`);
   }
-  writeCachedLogs(date, readCachedLogs(date).map((log) =>
-    log.id === logId ? { ...log, serving_grams: newGrams } : log
-  ));
+  writeCachedLogs(
+    date,
+    readCachedLogs(date, userId).map((log) =>
+      log.id === logId ? { ...log, serving_grams: newGrams } : log
+    ),
+    userId
+  );
 }
 
 export async function deleteLogEntry(date: string, logId: string): Promise<void> {
   const userId = await getAuthenticatedUserId();
-  if (userId) {
+  if (userId && isUuid(logId)) {
     const { error } = await supabase
       .from('daily_logs')
       .delete()
@@ -583,5 +643,9 @@ export async function deleteLogEntry(date: string, logId: string): Promise<void>
       .eq('user_id', userId);
     if (error) throw new Error(`No se pudo eliminar el registro: ${error.message}`);
   }
-  writeCachedLogs(date, readCachedLogs(date).filter((log) => log.id !== logId));
+  writeCachedLogs(
+    date,
+    readCachedLogs(date, userId).filter((log) => log.id !== logId),
+    userId
+  );
 }
